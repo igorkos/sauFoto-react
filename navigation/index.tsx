@@ -15,7 +15,7 @@ import {BottomTabNavigator} from "../navigation/BottomTabNavigation"
 
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../components/types';
 import {DrawerNavigator} from '../navigation/DrawerNavigator';
-import { userSession } from '../stacks/auth';
+//import { userSession } from '../stacks/auth';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
@@ -52,11 +52,11 @@ function RootNavigator() {
     </Stack.Navigator>
   );
 }
-
+/*
 function RouteToFirstScreen(){
     if(userSession.isUserSignedIn()) {
         return SigninScreen()
     } else {
         return BottomTabNavigator
     }
-}
+}*/

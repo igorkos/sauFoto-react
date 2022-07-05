@@ -7,7 +7,7 @@
  */
 
 import * as React from 'react';
-import type {Node} from 'react';
+//import type {Node} from 'react';
 import {NativeBaseProvider, extendTheme} from 'native-base';
 
 import {
@@ -31,10 +31,9 @@ import {
 import 'localstorage-polyfill';
 import Navigation from './navigation';
 
-const App: () => Node = () => {
+export default function App() {
   return (
         <Navigation colorScheme={useColorScheme()} />
   );
 };
 
-export default App;
