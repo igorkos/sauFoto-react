@@ -102,3 +102,10 @@ dist
 
 # TernJS port file
 .tern-port
+
+# DynamoDB Local files
+
+android/app/build/
+android/.gradle/
+ios/build/
+ios/Pods
