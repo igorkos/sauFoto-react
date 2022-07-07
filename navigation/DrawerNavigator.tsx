@@ -18,10 +18,8 @@ export  function DrawerNavigator() {
             useLegacyImplementation
             drawerContent={(props) => <SaufotoDrawer {...props} />}>
 
-            <Drawer.Screen
-                name="GooglePhotos"
-                component={GooglePhotosScreen}
-            />
+            <Drawer.Screen name="Gallery" component={BottomTabNavigator}/>
+            <Drawer.Screen name="GooglePhotos" component={GooglePhotosScreen}/>
         </Drawer.Navigator>
     );
 };
