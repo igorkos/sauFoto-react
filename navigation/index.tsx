@@ -14,14 +14,14 @@ import NotFoundScreen from '../screens/NotFoundScreen';
 import {BottomTabNavigator} from "../navigation/BottomTabNavigation"
 
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../components/types';
-import {DrawerNavigator} from '../navigation/DrawerNavigator';
+import ImageView from "../screens/ImageViewScreen";
 //import { userSession } from '../stacks/auth';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
     <NavigationContainer
       theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <DrawerNavigator/>
+        <RootNavigator/>
     </NavigationContainer>
   );
 }
@@ -44,10 +44,10 @@ function RootNavigator() {
                 fontWeight: 'bold',
             },
         }}>
-      <Stack.Screen  name="Root" component={BottomTabNavigator} options={{ headerShown: true }} />
+      <Stack.Screen  name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
-        <Stack.Screen name="Modal" component={ModalScreen} />
+          <Stack.Screen name="ImageView" component={ImageView} options={{ headerShown: true }} />
       </Stack.Group>
     </Stack.Navigator>
   );

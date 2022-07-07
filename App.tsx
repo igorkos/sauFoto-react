@@ -9,6 +9,7 @@
 import * as React from 'react';
 //import type {Node} from 'react';
 import {NativeBaseProvider, extendTheme} from 'native-base';
+import { Provider as PaperProvider } from 'react-native-paper';
 
 import {
   SafeAreaView,
@@ -30,10 +31,17 @@ import {
 
 import 'localstorage-polyfill';
 import Navigation from './navigation';
+import {enableScreens} from "react-native-screens";
+
+global.__reanimatedWorkletInit = () => {};
+
+enableScreens();
 
 export default function App() {
   return (
+      <PaperProvider>
         <Navigation colorScheme={useColorScheme()} />
+      </PaperProvider>
   );
 };
 

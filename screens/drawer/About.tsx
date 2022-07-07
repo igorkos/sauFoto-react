@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Platform, StyleSheet, StatusBar } from 'react-native';
 
 import EditScreenInfo from '../../components/EditScreenInfo';

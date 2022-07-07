@@ -3,13 +3,19 @@ import { StyleSheet } from 'react-native';
 
 import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
+import FastImage from "react-native-fast-image";
 
 export default function TabTwoScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tab Two</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="/screens/TabTwoScreen.tsx" />
+      <FastImage
+          style={styles.imageStyle}
+          source={{
+            uri: 'https://api.adorable.io/avatars/50/abott@adorable.png',
+          }}
+      />
     </View>
   );
 }
@@ -19,6 +25,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  imageStyle: {
+    height: 300,
+    width: '100%',
   },
   title: {
     fontSize: 20,
