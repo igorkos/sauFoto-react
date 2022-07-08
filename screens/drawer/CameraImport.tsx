@@ -4,7 +4,7 @@ import { Platform, StyleSheet, StatusBar } from 'react-native';
 import EditScreenInfo from '../../components/EditScreenInfo';
 import { Text, View } from '../../components/Themed';
 
-export default function DropboxScreen() {
+export default function CameraScreen() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Modal</Text>

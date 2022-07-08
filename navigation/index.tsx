@@ -4,59 +4,28 @@
  *
  */
 import * as React from 'react';
-import { ColorSchemeName, Pressable } from 'react-native';
+import { NavigationContainer} from '@react-navigation/native';
+import {DrawerNavigator} from './DrawerNavigator';
+//import RootStackScreen from '../screens/RootStackScreen'
+//import {stacks} from "../stacks/StacksManager";
+import {SplashScreen} from '../screens/SplashScreen';
+import {theme} from "../constants/themes";
 
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SigninScreen from '../screens/SigninScreen';
-import ModalScreen from '../screens/ModalScreen';
-import NotFoundScreen from '../screens/NotFoundScreen';
-import {BottomTabNavigator} from "../navigation/BottomTabNavigation"
-
-import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../components/types';
-import {DrawerNavigator} from '../navigation/DrawerNavigator';
-//import { userSession } from '../stacks/auth';
-
-export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
+export default function Navigation() {
   return (
-    <NavigationContainer
-      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <DrawerNavigator/>
+    <NavigationContainer theme={theme}>
+        {RouteToFirstScreen()}
     </NavigationContainer>
   );
 }
 
-/**
- * A root stack navigator is often used for displaying modals on top of all other content.
- * https://reactnavigation.org/docs/modal
- */
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-function RootNavigator() {
-  return (
-    <Stack.Navigator
-        screenOptions={{
-            headerStyle: {
-                backgroundColor: '#f4511e',
-            },
-            headerTintColor: '#fff',
-            headerTitleStyle: {
-                fontWeight: 'bold',
-            },
-        }}>
-      <Stack.Screen  name="Root" component={BottomTabNavigator} options={{ headerShown: true }} />
-      <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
-      <Stack.Group screenOptions={{ presentation: 'modal' }}>
-        <Stack.Screen name="Modal" component={ModalScreen} />
-      </Stack.Group>
-    </Stack.Navigator>
-  );
-}
-/*
+//{stacks.isLoggedIn ? <DrawerNavigator/> : <RootStackScreen/>}
+//import { userSession } from '../stacks/auth';
 function RouteToFirstScreen(){
-    if(userSession.isUserSignedIn()) {
-        return SigninScreen()
+    return DrawerNavigator()
+    /*if(stacks.isLoggedIn) {
+        return DrawerNavigator()
     } else {
-        return BottomTabNavigator
-    }
-}*/
+        return RootStackScreen()
+    }*/
+}

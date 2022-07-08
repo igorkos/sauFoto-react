@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Platform, StyleSheet, StatusBar } from 'react-native';
 
-import EditScreenInfo from '../../components/EditScreenInfo';
-import { Text, View } from '../../components/Themed';
+import EditScreenInfo from '../components/EditScreenInfo';
+import { Text, View } from '../components/Themed';
 
-export default function DropboxScreen() {
+export default function AlbumsScreen() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Modal</Text>
@@ -12,7 +12,6 @@ export default function DropboxScreen() {
             <EditScreenInfo path="/screens/ModalScreen.tsx" />
 
             {/* Use a light status bar on iOS to account for the black space above the modal */}
-            <StatusBar barStyle={Platform.OS === 'ios' ? 'light-content' : 'default'} />
         </View>
     );
 }
