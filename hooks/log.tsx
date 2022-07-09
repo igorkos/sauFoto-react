@@ -1,29 +1,21 @@
-import { logger, mapConsoleTransport } from 'react-native-logs';
+import {
+  logger,
+  consoleTransport,
+  fileAsyncTransport,
+} from "react-native-logs";
 
 const config = {
-  levels: {
-    debug: 0,
-    info: 1,
-    warn: 2,
-    err: 3,
-  },
-  transport: mapConsoleTransport,
+  transport: __DEV__ ? consoleTransport : fileAsyncTransport,
+  severity: __DEV__ ? "debug" : "error",
   transportOptions: {
-    mapLevels: {
-      debug: "log",
-      info: "info",
-      warn: "warn",
-      err: "error",
+    colors: {
+      info: "blueBright",
+      warn: "yellowBright",
+      error: "redBright",
     },
   },
 };
 
-var log = logger.createLogger(config);
+const Log = logger.createLogger(config);
 
-if (__DEV__) {
-  log.setSeverity('debug');
-} else {
-  log.setSeverity('error');
-}
-
-export { log };
+export { Log };

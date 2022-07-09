@@ -3,7 +3,7 @@
  * https://docs.expo.io/guides/color-schemes/
  */
 import * as React from 'react';
-import { Text as DefaultText, View as DefaultView } from 'react-native';
+import {Text as DefaultText, useWindowDimensions, View as DefaultView} from 'react-native';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
@@ -43,3 +43,7 @@ export function View(props: ViewProps) {
 
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
 }
+
+const screen = useWindowDimensions()
+export var screenHeight = screen.height
+export var screenWidth = screen.width

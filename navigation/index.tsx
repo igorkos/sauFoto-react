@@ -4,59 +4,132 @@
  *
  */
 import * as React from 'react';
-import { ColorSchemeName, Pressable } from 'react-native';
+import { NavigationContainer} from '@react-navigation/native';
+import {DrawerNavigator} from './DrawerNavigator';
+//import RootStackScreen from '../screens/RootStackScreen'
+//import {stacks} from "../stacks/StacksManager";
+import {SplashScreen} from '../screens/SplashScreen';
+import {theme} from "../constants/themes";
+import AsyncStorage from "@react-native-community/async-storage";
+import {useEffect} from "react";
+import {AuthContext} from '../components/context';
+import {Provider as PaperProvider,} from 'react-native-paper';
+import {Log} from "../hooks/log";
+import RootStackScreen from "../screens/RootStackScreen";
+import {StatusBar} from "react-native";
 
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SigninScreen from '../screens/SigninScreen';
-import ModalScreen from '../screens/ModalScreen';
-import NotFoundScreen from '../screens/NotFoundScreen';
-import {BottomTabNavigator} from "../navigation/BottomTabNavigation"
+const initialLoginState = {
+    isLoading: true,
+    userName: null,
+    userToken: null,
+};
 
-import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../components/types';
-import ImageView from "../screens/ImageViewScreen";
-//import { userSession } from '../stacks/auth';
-
-export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
-  return (
-    <NavigationContainer
-      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <RootNavigator/>
-    </NavigationContainer>
-  );
-}
-
-/**
- * A root stack navigator is often used for displaying modals on top of all other content.
- * https://reactnavigation.org/docs/modal
- */
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-function RootNavigator() {
-  return (
-    <Stack.Navigator
-        screenOptions={{
-            headerStyle: {
-                backgroundColor: '#f4511e',
-            },
-            headerTintColor: '#fff',
-            headerTitleStyle: {
-                fontWeight: 'bold',
-            },
-        }}>
-      <Stack.Screen  name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />
-      <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
-      <Stack.Group screenOptions={{ presentation: 'modal' }}>
-          <Stack.Screen name="ImageView" component={ImageView} options={{ headerShown: true }} />
-      </Stack.Group>
-    </Stack.Navigator>
-  );
-}
-/*
-function RouteToFirstScreen(){
-    if(userSession.isUserSignedIn()) {
-        return SigninScreen()
-    } else {
-        return BottomTabNavigator
+const loginReducer = (prevState, action) => {
+    Log.debug("loginReducer: action {" + action.type + "} -> {id:" + action.id + ", token:" + action.token + "}")
+    switch (action.type) {
+        case 'RETRIEVE_TOKEN':
+            if (prevState.isLoading === false) return prevState
+            return {
+                ...prevState,
+                isLoading: false
+            };
+        case 'LOGIN':
+            if (prevState.isLoading === false && prevState.userName === action.id  && prevState.userToken === action.token) return prevState
+            return {
+                ...prevState,
+                userName: action.id,
+                userToken: action.token,
+                isLoading: false,
+            };
+        case 'LOGOUT':
+            if (prevState.isLoading === false && prevState.userName === null  && prevState.userToken === null) return prevState
+            return {
+                ...prevState,
+                userName: null,
+                userToken: null,
+                isLoading: false,
+            };
+        case 'REGISTER':
+            if (prevState.isLoading === false && prevState.userName === action.id  && prevState.userToken === action.token) return prevState
+            return {
+                ...prevState,
+                userName: action.id,
+                userToken: action.token,
+                isLoading: false,
+            };
     }
-}*/
+};
+
+export default function Navigation() {
+    Log.debug("Navigation");
+    const [loginState, dispatch] = React.useReducer(
+        loginReducer,
+        initialLoginState,
+    );
+
+    const authContext = React.useMemo(
+        () => ({
+            signIn: async foundUser => {
+                Log.debug("signIn: " + foundUser);
+                // setUserToken('fgkj');
+                // setIsLoading(false);
+                const userToken = foundUser.userToken;
+                const userName = foundUser.username;
+
+                try {
+                    if (userToken !== null) {
+                        await AsyncStorage.setItem('userToken', userToken);
+                    } else {
+                        await AsyncStorage.removeItem('userToken');
+                    }
+                } catch (e) {
+                    Log.error(e);
+                }
+                // console.log('user token: ', userToken);
+                dispatch({type: 'LOGIN', id: userName, token: userToken});
+            },
+            signOut: async () => {
+                // setUserToken(null);
+                // setIsLoading(false);
+                try {
+                    await AsyncStorage.removeItem('userToken');
+                } catch (e) {
+                    Log.error(e);
+                }
+                dispatch({type: 'LOGOUT'});
+            },
+            signUp: () => {
+                // setUserToken('fgkj');
+                // setIsLoading(false);
+            },
+        }),
+        [],
+    );
+
+   /* useEffect(() => {
+        setTimeout(async () => {
+            // setIsLoading(false);
+            let userToken;
+            userToken = null;
+            try {
+                userToken = await AsyncStorage.getItem('userToken');
+            } catch (e) {
+                Log.error(e);
+            }
+            // console.log('user token: ', userToken);
+            dispatch({type: 'RETRIEVE_TOKEN', token: userToken});
+        }, 1000);
+    }, [loginState]);
+    */
+
+    return (
+        <PaperProvider theme={theme}>
+            <AuthContext.Provider value={authContext}>
+                <NavigationContainer theme={theme}>
+                    {loginState.userToken !== null ? (<StatusBar backgroundColor={theme.colors.background} barStyle={theme.dark ? 'dark-content' : 'light-content'} />) : (<StatusBar hidden={true} />)}
+                    {loginState.userToken !== null ? (DrawerNavigator()):(RootStackScreen())}
+                </NavigationContainer>
+            </AuthContext.Provider>
+        </PaperProvider>
+  );
+}
