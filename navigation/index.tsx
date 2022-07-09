@@ -116,15 +116,14 @@ export default function Navigation() {
             dispatch({type: 'RETRIEVE_TOKEN', token: userToken});
         }, 1000);
     }, [loginState]);
-     {loginState.userToken !== null ? (<StatusBar backgroundColor={theme.colors.background} barStyle={theme.dark ? 'dark-content' : 'light-content'} />) : (<StatusBar hidden={true} />)}
-                    {loginState.userToken !== null ? (DrawerNavigator()):(RootStackScreen())}
     */
 
     return (
         <PaperProvider theme={theme}>
             <AuthContext.Provider value={authContext}>
                 <NavigationContainer theme={theme}>
-                    {DrawerNavigator()}
+                    {loginState.userToken !== null ? (<StatusBar backgroundColor={theme.colors.background} barStyle={theme.dark ? 'dark-content' : 'light-content'} />) : (<StatusBar hidden={true} />)}
+                    {loginState.userToken !== null ? (DrawerNavigator()):(RootStackScreen())}
                 </NavigationContainer>
             </AuthContext.Provider>
         </PaperProvider>

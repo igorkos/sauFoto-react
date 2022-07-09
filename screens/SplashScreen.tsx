@@ -6,7 +6,6 @@ import {
   ImageBackground,
   TouchableOpacity,
 } from 'react-native';
-//import FingerprintScanner from 'react-native-fingerprint-scanner';
 import FastImage from 'react-native-fast-image';
 import Colors from "../constants/Colors";
 import LinearGradient from "react-native-linear-gradient";
@@ -15,9 +14,18 @@ import * as Animatable from 'react-native-animatable';
 import {AuthContext} from "../components/context";
 import users from "../stacks/users";
 import {screenWidth} from "../components/Themed";
+import { Camera} from 'expo-camera';
+import {Log} from "../hooks/log";
 
 export function SplashScreen({navigation}){
   const {signIn} = React.useContext(AuthContext);
+
+  /*useEffect(() => {
+    setTimeout(async () => {
+      const newCameraPermission = await Camera.requestCameraPermissionsAsync()
+      Log.debug("Permissions camera:" + newCameraPermission)
+    }, 1000);
+  });*/
 
   return (
     <View style={styles.container}>

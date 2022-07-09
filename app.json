@@ -1,4 +1,7 @@
 {
   "name": "sauFoto",
-  "displayName": "sauFoto"
+  "displayName": "sauFoto",
+  "expo": {
+    "name": "sauFoto"
+  }
 }

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.linked.project.id=":expo-font:unitTest" external.linked.project.path="$MODULE_DIR$/../../../../node_modules/expo-font/android" external.root.project.path="$MODULE_DIR$/../../.." external.system.id="GRADLE" external.system.module.type="sourceSet" type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="kotlin-language" name="Kotlin">
+      <configuration version="5" platform="JVM 11" allPlatforms="JVM [11]" useProjectSettings="false">
+        <compilerSettings>
+          <option name="additionalArguments" value="-Xallow-no-source-files" />
+        </compilerSettings>
+        <compilerArguments>
+          <flagArguments>
+            <flagArg name="noStdlib" arg="true" />
+          </flagArguments>
+          <stringArguments>
+            <stringArg name="classpath">
+              <args>
+                <arg>$MODULE_DIR$/../../../../node_modules/expo-font/android/build/intermediates/compile_library_classes_jar/debug/classes.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/236b69ccc22ba3605d9b31aaeb2da5a0/transformed/jetified-kotlin-stdlib-jdk7-1.6.10.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/db330abd7ab257cff848a1e2d6c558af/transformed/jetified-kotlin-stdlib-1.6.10.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/cb38687912b475c81a09d42c8cfda833/transformed/jetified-annotations-13.0.jar</arg>
+                <arg>$USER_HOME$/.gradle/caches/transforms-3/e16a6929a511ff2f2d2f24af6162f04b/transformed/jetified-kotlin-stdlib-common-1.6.10.jar</arg>
+                <arg>$MODULE_DIR$/../../../../node_modules/expo-modules-core/android/build/intermediates/compile_library_classes_jar/debug/classes.jar</arg>
+                <arg>$USER_HOME$/Library/Android/sdk/platforms/android-31/android.jar</arg>
+                <arg>$USER_HOME$/Library/Android/sdk/build-tools/30.0.2/core-lambda-stubs.jar</arg>
+              </args>
+            </stringArg>
+            <stringArg name="destination" arg="$MODULE_DIR$/../../../../node_modules/expo-font/android/build/tmp/kotlin-classes/debugUnitTest" />
+            <stringArg name="jvmTarget" arg="11" />
+            <stringArg name="moduleName" arg="expo-font_debug" />
+            <stringArg name="apiVersion" arg="1.5" />
+            <stringArg name="languageVersion" arg="1.5" />
+          </stringArguments>
+          <arrayArguments>
+            <arrayArg name="friendPaths">
+              <args>
+                <arg>$MODULE_DIR$/../../../../node_modules/expo-font/android/build/tmp/kotlin-classes/debug</arg>
+                <arg>$MODULE_DIR$/../../../../node_modules/expo-font/android/build/intermediates/javac/debug/classes</arg>
+                <arg>$MODULE_DIR$/../../../../node_modules/expo-font/android/build/intermediates/compile_library_classes_jar/debug/classes.jar</arg>
+              </args>
+            </arrayArg>
+            <arrayArg name="pluginClasspaths" />
+            <arrayArg name="pluginOptions" />
+          </arrayArguments>
+        </compilerArguments>
+      </configuration>
+    </facet>
+    <facet type="android" name="Android">
+      <configuration>
+        <option name="SELECTED_BUILD_VARIANT" value="debug" />
+        <option name="ASSEMBLE_TASK_NAME" value="assembleDebug" />
+        <option name="COMPILE_JAVA_TASK_NAME" value="compileDebugSources" />
+        <afterSyncTasks>
+          <task>generateDebugSources</task>
+        </afterSyncTasks>
+        <option name="ALLOW_USER_CONFIGURATION" value="false" />
+        <option name="MANIFEST_FILE_RELATIVE_PATH" value="/src/main/AndroidManifest.xml" />
+        <option name="RES_FOLDER_RELATIVE_PATH" value="/src/main/res" />
+        <option name="RES_FOLDERS_RELATIVE_PATH" value="file://$MODULE_DIR$/../../../../node_modules/expo-font/android/src/main/res;file://$MODULE_DIR$/../../../../node_modules/expo-font/android/src/debug/res;file://$MODULE_DIR$/../../../../node_modules/expo-font/android/build/generated/res/rs/debug;file://$MODULE_DIR$/../../../../node_modules/expo-font/android/build/generated/res/resValues/debug" />
+        <option name="TEST_RES_FOLDERS_RELATIVE_PATH" value="file://$MODULE_DIR$/../../../../node_modules/expo-font/android/src/androidTest/res;file://$MODULE_DIR$/../../../../node_modules/expo-font/android/src/androidTestDebug/res;file://$MODULE_DIR$/../../../../node_modules/expo-font/android/build/generated/res/rs/androidTest/debug;file://$MODULE_DIR$/../../../../node_modules/expo-font/android/build/generated/res/resValues/androidTest/debug" />
+        <option name="ASSETS_FOLDER_RELATIVE_PATH" value="/src/main/assets" />
+        <option name="PROJECT_TYPE" value="1" />
+      </configuration>
+    </facet>
+  </component>
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_11" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../../../node_modules/expo-font/android/build/generated/ap_generated_sources/debugUnitTest/out" />
+    <content url="file://$MODULE_DIR$/../../../../node_modules/expo-font/android/src/test" />
+    <content url="file://$MODULE_DIR$/../../../../node_modules/expo-font/android/src/testDebug" />
+    <orderEntry type="jdk" jdkName="Android API 31 Platform" jdkType="Android SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="sauFoto.expo-font.main" scope="TEST" />
+    <orderEntry type="module" module-name="sauFoto.expo-modules-core.main" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.10" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.6.10" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains:annotations:13.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.6.10" level="project" />
+  </component>
+  <component name="TestModuleProperties" production-module="sauFoto.expo-font.main" />
+</module>

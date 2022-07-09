@@ -47,6 +47,11 @@ allprojects {
                 excludeGroup "com.facebook.react"
             }
         }
+        // * Add a new maven block after other repositories / blocks *
+        maven {
+            // expo-camera bundles a custom com.google.android:cameraview
+            url "$rootDir/../node_modules/expo-camera/android/maven"
+        }
         google()
         maven { url 'https://www.jitpack.io' }
     }

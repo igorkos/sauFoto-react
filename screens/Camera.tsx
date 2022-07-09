@@ -1,32 +1,49 @@
 import * as React from "react";
-import { Platform, StyleSheet, StatusBar } from 'react-native';
-
-import EditScreenInfo from '../components/EditScreenInfo';
-import { Text, View } from '../components/Themed';
+import {Platform, StyleSheet, StatusBar, TouchableOpacity, Text} from 'react-native';
+import { Camera, CameraType } from 'expo-camera';
+import {View} from "../components/Themed";
+import {useState} from "react";
 
 export default function CameraScreen() {
+    const [type, setType] = useState(CameraType.back);
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Modal</Text>
-            <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-            <EditScreenInfo path="/screens/ModalScreen.tsx" />
+            <Camera style={styles.camera} type={type}>
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => {
+                            setType(type === CameraType.back ? CameraType.front : CameraType.back);
+                        }}>
+                        <Text style={styles.text}> Flip </Text>
+                    </TouchableOpacity>
+                </View>
+            </Camera>
         </View>
-    );
+    )
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    camera: {
+        flex: 1,
+    },
+    buttonContainer: {
+        flex: 1,
+        backgroundColor: 'transparent',
+        flexDirection: 'row',
+        margin: 20,
+    },
+    button: {
+        flex: 0.1,
+        alignSelf: 'flex-end',
         alignItems: 'center',
-        justifyContent: 'center',
     },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    separator: {
-        marginVertical: 30,
-        height: 1,
-        width: '80%',
+    text: {
+        fontSize: 18,
+        color: 'white',
     },
 });

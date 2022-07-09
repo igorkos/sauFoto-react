@@ -8,7 +8,7 @@ import {BottomTabNavigator, RootNavigator} from './BottomTabNavigation';
 
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import CameraScreen from "../screens/drawer/CameraImport";
-import {theme} from "../constants/themes";
+
 import {StatusBar, View} from "react-native";
 import {NavigationContainer} from "@react-navigation/native";
 import {SplashScreen} from "../screens/SplashScreen";

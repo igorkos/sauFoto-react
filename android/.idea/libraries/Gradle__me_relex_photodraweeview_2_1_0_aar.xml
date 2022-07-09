@@ -1,0 +1,19 @@
+<component name="libraryTable">
+  <library name="Gradle: me.relex:photodraweeview:2.1.0@aar">
+    <ANNOTATIONS>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/441d704c3161bcd826ea0dbd4d7afcbf/transformed/jetified-photodraweeview-2.1.0/annotations.zip!/" />
+    </ANNOTATIONS>
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/898207a840afa41073e218d8a4180f49/transformed/jetified-photodraweeview-2.1.0/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/441d704c3161bcd826ea0dbd4d7afcbf/transformed/jetified-photodraweeview-2.1.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/441d704c3161bcd826ea0dbd4d7afcbf/transformed/jetified-photodraweeview-2.1.0/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/441d704c3161bcd826ea0dbd4d7afcbf/transformed/jetified-photodraweeview-2.1.0/AndroidManifest.xml" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/me.relex/photodraweeview/2.1.0/44e334386efc9cbb663cc75e280049238d7afcc3/photodraweeview-2.1.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/me.relex/photodraweeview/2.1.0/56e24e8f4096894940c8677c8da7b4602efc74fc/photodraweeview-2.1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
