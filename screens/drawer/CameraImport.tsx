@@ -1,35 +1,78 @@
 import * as React from "react";
-import { Platform, StyleSheet, StatusBar } from 'react-native';
-
-import EditScreenInfo from '../../components/EditScreenInfo';
+import {Platform, StyleSheet, StatusBar, SafeAreaView, FlatList, TouchableOpacity} from 'react-native';
 import { Text, View } from '../../components/Themed';
+import FastImage from "react-native-fast-image";
+import {theme} from "../../constants/themes";
+import {useEffect, useState} from "react";
+import * as MediaLibrary from "expo-media-library";
+import * as CameraRoll from "@react-native-community/cameraroll";
+import {CameraRollImages} from "../../data/CameraRollDataSource";
+import {Log} from "../../hooks/log";
 
-export default function CameraScreen() {
+export default function CameraScreen({ navigation }) {
+    const [dataSource, setDataSource] = useState([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            await MediaLibrary.requestPermissionsAsync()
+            const photos = await CameraRollImages()
+            Log.debug("Loading Camera Roll images:" + photos)
+            setDataSource(photos)
+        }
+        fetchData().catch((err) => {
+            Log.error("Loading Camera Roll images error:" + err)
+        });
+    }, []);
+
+    const showModalFunction = (id) => {
+        //handler to handle the click on image of Grid
+        //and close button on modal
+        navigation.navigate('ImageCarousel', {selected: id, collection:dataSource })
+    };
+
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Modal</Text>
-            <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-            <EditScreenInfo path="/screens/ModalScreen.tsx" />
-
-            {/* Use a light status bar on iOS to account for the black space above the modal */}
-            <StatusBar barStyle={Platform.OS === 'ios' ? 'light-content' : 'default'} />
-        </View>
+        <SafeAreaView style={styles.container}>
+            <View style={styles.container}>
+                <FlatList
+                    data={dataSource}
+                    renderItem={({item}) => (
+                        <View style={styles.imageContainerStyle}>
+                            <TouchableOpacity
+                                key={item.id}
+                                style={{flex: 1}}
+                                onPress={() => {
+                                    showModalFunction(item.id);
+                                }}>
+                                <FastImage
+                                    style={styles.imageStyle}
+                                    source={{
+                                        uri: item.image,
+                                    }}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                    //Setting the number of column
+                    numColumns={3}
+                    keyExtractor={(item, index) => index.toString()}
+                />
+            </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
+        backgroundColor: theme.colors.background,
     },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
+    imageContainerStyle: {
+        flex: 1,
+        flexDirection: 'column',
+        margin: 1,
     },
-    separator: {
-        marginVertical: 30,
-        height: 1,
-        width: '80%',
+    imageStyle: {
+        height: 120,
+        width: 120,
     },
 });

@@ -107,6 +107,9 @@ dist
 
 android/app/build/
 android/.gradle/
+android/.idea/
 ios/build/
 ios/Pods
 */.DS_Store
+
+*.iml

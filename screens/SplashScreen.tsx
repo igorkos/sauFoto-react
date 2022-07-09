@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ImageBackground,
-  TouchableOpacity,
+  TouchableOpacity, Platform, PermissionsAndroid,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import Colors from "../constants/Colors";
@@ -16,16 +16,25 @@ import users from "../stacks/users";
 import {screenWidth} from "../components/Themed";
 import { Camera} from 'expo-camera';
 import {Log} from "../hooks/log";
+import {useEffect} from "react";
+
 
 export function SplashScreen({navigation}){
   const {signIn} = React.useContext(AuthContext);
 
-  /*useEffect(() => {
+  useEffect(() => {
     setTimeout(async () => {
       const newCameraPermission = await Camera.requestCameraPermissionsAsync()
       Log.debug("Permissions camera:" + newCameraPermission)
+      if(Platform.OS === 'android') {
+        const hasPermission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
+        if (!hasPermission) {
+          const status = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
+          Log.debug("Permissions write storage:" + status)
+        }
+      }
     }, 1000);
-  });*/
+  });
 
   return (
     <View style={styles.container}>

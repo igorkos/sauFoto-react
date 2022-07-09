@@ -36,6 +36,7 @@
     "deprecated-react-native-prop-types": "^2.3.0",
     "expo": "^45.0.6",
     "expo-camera": "~12.2.0",
+    "expo-media-library": "~14.1.0",
     "install-expo-modules": "^0.3.4",
     "localstorage-polyfill": "^1.0.1",
     "native-base": "^3.2.2",

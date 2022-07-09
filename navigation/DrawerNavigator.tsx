@@ -5,10 +5,8 @@ import DropboxScreen from '../screens/drawer/Dropbox';
 import SettingsScreen from '../screens/drawer/Settings';
 import AboutScreen from '../screens/drawer/About';
 import {BottomTabNavigator, RootNavigator} from './BottomTabNavigation';
-
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import CameraScreen from "../screens/drawer/CameraImport";
-
 import {StatusBar, View} from "react-native";
 import {NavigationContainer} from "@react-navigation/native";
 import {SplashScreen} from "../screens/SplashScreen";
