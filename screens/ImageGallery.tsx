@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import { Text, View } from '../components/Themed';
 import { RootTabScreenProps } from './drawer/types';
 
-export default function ImageGallery({ navigation }: RootTabScreenProps<'Gallery'>) {
+export default function ImageGallery({ navigation }: RootTabScreenProps<'GalleryScreen'>) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tab One</Text>

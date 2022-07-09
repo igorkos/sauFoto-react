@@ -1,4 +1,3 @@
-import {theme} from "./themes";
 
 const color = {
     a100: '#b388ff',
@@ -28,6 +27,7 @@ export default {
     tabIconSelected: color.c200,
     tabBackground: color.c600,
   },
+  colors: color,
 };
 
 /*

@@ -3,7 +3,6 @@ import {RootStackParamList, RootTabParamList, RootTabScreenProps} from "../scree
 import useColorScheme from "../hooks/useColorScheme";
 import {getFocusedRouteNameFromRoute} from "@react-navigation/native";
 import * as React from "react";
-import Colors from "../constants/Colors";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CameraScreen from "../screens/Camera";

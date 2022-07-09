@@ -19,6 +19,7 @@ const CustomDefaultTheme = {
         ...PaperDefaultTheme.colors,
         background: Colors.light.background,
         text: Colors.light.text,
+        textDark: Colors.dark.text,
         headerBackground: Colors.light.tabBackground,
     },
 };
@@ -31,11 +32,12 @@ const CustomDarkTheme = {
         ...PaperDarkTheme.colors,
         background: Colors.dark.background,
         text: Colors.dark.text,
+        textDark: Colors.light.text,
         headerBackground: Colors.dark.tabBackground,
     },
 };
 
-const [isDarkTheme, setIsDarkTheme] = React.useState(false);
+export const [isDarkTheme, setIsDarkTheme] = React.useState(false);
 
 export const theme = isDarkTheme ? CustomDarkTheme : CustomDefaultTheme;
 
