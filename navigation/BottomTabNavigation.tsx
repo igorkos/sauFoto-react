@@ -9,6 +9,7 @@ import CameraScreen from "../screens/Camera";
 import AlbumsScreen from "../screens/Albums";
 import ImageGallery from "../screens/ImageGallery";
 import {theme} from "../constants/themes";
+import ImageView from "../screens/ImageViewSource";
 
 /**
  * A bottom tab navigator displays tab buttons on the bottom of the display to switch screens.
@@ -26,7 +27,9 @@ export function RootNavigator() {
                 headerShown: false,
             }}>
             <Stack.Screen  name="Home" component={BottomTabNavigator} options={{ headerShown: false }} />
-
+            <Stack.Group screenOptions={{presentation: 'modal'}}>
+                <Stack.Screen  name="ImageCarousel" component={ImageView} options={{ headerShown: false }} />
+            </Stack.Group>
         </Stack.Navigator>
     );
 }

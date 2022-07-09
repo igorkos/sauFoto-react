@@ -15,6 +15,10 @@ declare global {
 
 export type RootStackParamList = {
   Home: NavigatorScreenParams<RootTabParamList> | undefined;
+  ImageCarousel: {
+    selected:number,
+    collection:any
+  } | undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<

@@ -6,12 +6,8 @@
 import * as React from 'react';
 import { NavigationContainer} from '@react-navigation/native';
 import {DrawerNavigator} from './DrawerNavigator';
-//import RootStackScreen from '../screens/RootStackScreen'
-//import {stacks} from "../stacks/StacksManager";
-import {SplashScreen} from '../screens/SplashScreen';
 import {theme} from "../constants/themes";
 import AsyncStorage from "@react-native-community/async-storage";
-import {useEffect} from "react";
 import {AuthContext} from '../components/context';
 import {Provider as PaperProvider,} from 'react-native-paper';
 import {Log} from "../hooks/log";
@@ -120,14 +116,15 @@ export default function Navigation() {
             dispatch({type: 'RETRIEVE_TOKEN', token: userToken});
         }, 1000);
     }, [loginState]);
+     {loginState.userToken !== null ? (<StatusBar backgroundColor={theme.colors.background} barStyle={theme.dark ? 'dark-content' : 'light-content'} />) : (<StatusBar hidden={true} />)}
+                    {loginState.userToken !== null ? (DrawerNavigator()):(RootStackScreen())}
     */
 
     return (
         <PaperProvider theme={theme}>
             <AuthContext.Provider value={authContext}>
                 <NavigationContainer theme={theme}>
-                    {loginState.userToken !== null ? (<StatusBar backgroundColor={theme.colors.background} barStyle={theme.dark ? 'dark-content' : 'light-content'} />) : (<StatusBar hidden={true} />)}
-                    {loginState.userToken !== null ? (DrawerNavigator()):(RootStackScreen())}
+                    {DrawerNavigator()}
                 </NavigationContainer>
             </AuthContext.Provider>
         </PaperProvider>

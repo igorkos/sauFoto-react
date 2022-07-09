@@ -4,7 +4,7 @@ import GooglePhotosScreen from '../screens/drawer/GooglePhotos'
 import DropboxScreen from '../screens/drawer/Dropbox';
 import SettingsScreen from '../screens/drawer/Settings';
 import AboutScreen from '../screens/drawer/About';
-import {BottomTabNavigator} from './BottomTabNavigation';
+import {BottomTabNavigator, RootNavigator} from './BottomTabNavigation';
 
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import CameraScreen from "../screens/drawer/CameraImport";
@@ -22,7 +22,7 @@ export function DrawerNavigator() {
                 useLegacyImplementation
                 drawerContent={(props) => <SaufotoDrawer {...props}
                 />}>
-                <Drawer.Screen name="Gallery" component={BottomTabNavigator}/>
+                <Drawer.Screen name="Gallery" component={RootNavigator}/>
                 <Drawer.Screen name="Camera" component={CameraScreen}/>
                 <Drawer.Screen name="Google" component={GooglePhotosScreen}/>
                 <Drawer.Screen name="Dropbox" component={DropboxScreen}/>
