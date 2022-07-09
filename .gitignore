@@ -109,4 +109,4 @@ android/app/build/
 android/.gradle/
 ios/build/
 ios/Pods
-.DS_Store
+*/.DS_Store
