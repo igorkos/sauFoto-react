@@ -16,7 +16,6 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.soloader.SoLoader;
 import com.saufoto.newarchitecture.MainApplicationReactNativeHost;
-import com.reactnativecommunity.cameraroll.CameraRollPackage;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 

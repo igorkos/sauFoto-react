@@ -122,8 +122,8 @@ export default function Navigation() {
         <PaperProvider theme={theme}>
             <AuthContext.Provider value={authContext}>
                 <NavigationContainer theme={theme}>
-                    {loginState.userToken !== null ? (<StatusBar backgroundColor={theme.colors.background} barStyle={theme.dark ? 'dark-content' : 'light-content'} />) : (<StatusBar hidden={true} />)}
-                    {loginState.userToken !== null ? (DrawerNavigator()):(RootStackScreen())}
+                    {loginState.userToken === null ? (<StatusBar backgroundColor={theme.colors.background} barStyle={theme.dark ? 'dark-content' : 'light-content'} />) : (<StatusBar hidden={true} />)}
+                    {loginState.userToken === null ? (DrawerNavigator()):(RootStackScreen())}
                 </NavigationContainer>
             </AuthContext.Provider>
         </PaperProvider>

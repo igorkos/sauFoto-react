@@ -176,6 +176,9 @@ android {
             targetCompatibility = JavaVersion.VERSION_11
         }
 
+        manifestPlaceholders = [
+            appAuthRedirectScheme: 'com.saufoto'
+        ]
 
     }
 
@@ -275,7 +278,6 @@ dependencies {
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
     implementation project(':react-native-linear-gradient')
-    implementation project(':@react-native-community_cameraroll')
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni'

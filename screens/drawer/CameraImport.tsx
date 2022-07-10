@@ -5,7 +5,6 @@ import FastImage from "react-native-fast-image";
 import {theme} from "../../constants/themes";
 import {useEffect, useState} from "react";
 import * as MediaLibrary from "expo-media-library";
-import * as CameraRoll from "@react-native-community/cameraroll";
 import {CameraRollImages} from "../../data/CameraRollDataSource";
 import {Log} from "../../hooks/log";
 
