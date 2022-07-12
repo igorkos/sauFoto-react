@@ -1,4 +1,4 @@
-package com.saufoto.newarchitecture.components;
+package com.akellolcc.saufoto.newarchitecture.components;
 
 import com.facebook.jni.HybridData;
 import com.facebook.proguard.annotations.DoNotStrip;
