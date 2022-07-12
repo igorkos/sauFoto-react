@@ -1,4 +1,4 @@
-package com.saufoto;
+package com.akellolcc.saufoto;
 import expo.modules.ReactActivityDelegateWrapper;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;

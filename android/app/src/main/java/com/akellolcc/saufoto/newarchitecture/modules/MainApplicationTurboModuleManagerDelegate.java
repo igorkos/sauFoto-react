@@ -1,4 +1,4 @@
-package com.saufoto.newarchitecture.modules;
+package com.akellolcc.saufoto.newarchitecture.modules;
 
 import com.facebook.jni.HybridData;
 import com.facebook.react.ReactPackage;

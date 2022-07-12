@@ -1,4 +1,4 @@
-package com.saufoto.newarchitecture;
+package com.akellolcc.saufoto.newarchitecture;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
@@ -19,9 +19,9 @@ import com.facebook.react.fabric.CoreComponentsRegistry;
 import com.facebook.react.fabric.EmptyReactNativeConfig;
 import com.facebook.react.fabric.FabricJSIModuleProvider;
 import com.facebook.react.uimanager.ViewManagerRegistry;
-import com.saufoto.BuildConfig;
-import com.saufoto.newarchitecture.components.MainComponentsRegistry;
-import com.saufoto.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
+import com.akellolcc.saufoto.BuildConfig;
+import com.akellolcc.saufoto.newarchitecture.components.MainComponentsRegistry;
+import com.akellolcc.saufoto.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
 import java.util.ArrayList;
 import java.util.List;
 
