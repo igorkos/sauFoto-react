@@ -8,6 +8,7 @@ import FastImage from "react-native-fast-image";
 const CLIENT_ID = 'e7vfy8jyt9ees59'
 const CLIENT_SECRET = 'qcvhtg8zr1bwlow'
 const CLIENT_REDIRECT = 'com.saufoto://oauth'
+
 const config = {
     clientId: CLIENT_ID,
     clientSecret: CLIENT_SECRET,

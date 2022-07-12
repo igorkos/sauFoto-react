@@ -1,19 +1,56 @@
 import * as React from "react";
-import {StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Image, ImageBackground} from 'react-native';
+import {
+    StyleSheet,
+    SafeAreaView,
+    FlatList,
+    TouchableOpacity,
+    Image,
+    ImageBackground,
+    Platform,
+    BackHandler
+} from 'react-native';
 
 import { Text, View } from '../../components/Themed';
 import {Component, FunctionComponent, useEffect, useState} from "react";
 import {Log} from "../../hooks/log";
-import FastImage from "react-native-fast-image";
 import {theme} from "../../constants/themes";
-import {DropboxImages, getThumbsData} from "../../data/DropboxDataSource";
+import {DropboxImages, getThumbsData, resetDropboxAccess} from "../../data/DropboxDataSource";
 import {Caption, Title} from "react-native-paper";
 import * as Progress from 'react-native-progress';
 import {getPlaceFolder} from "../../constants/Images";
+import {List, Item} from 'linked-list'
+
+class Folder extends Item {
+    readonly value?: string;
+
+    constructor(value) {
+        super()
+        this.value = value
+    }
+
+    toString() {
+        return this.value
+    }
+}
 
 export default function DropboxScreen({ navigation }) {
     const [dataSource, setDataSource] = useState([]);
+    const [currentFolder, setSourceFolder] = useState(new List(new Folder(null),new Folder('')));
 
+    if(Platform.OS === 'android') {
+        BackHandler.addEventListener('hardwareBackPress', function () {
+            if (currentFolder.tail.prev === null) {
+                this.goBack();
+                return false;
+            }
+            currentFolder.tail.detach()
+            setSourceFolder(currentFolder)
+            fetchData(currentFolder.tail.value).catch((err) => {
+                Log.error("Loading Dropbox images error:" + err)
+            });
+            return true;
+        });
+    }
     const fetchData = async (root) => {
         return await DropboxImages(root).then( (photos) => {
                 Log.debug("Loaded Dropbox images from: '" + root + "'");
@@ -22,13 +59,15 @@ export default function DropboxScreen({ navigation }) {
     }
 
     useEffect(() => {
-        fetchData('').catch((err) => {
+        fetchData(currentFolder.tail.value).catch((err) => {
             Log.error("Loading Dropbox images error:" + err)
         });
     }, []);
 
     const showModalFunction = (id) => {
         if(id.type === 'album') {
+            currentFolder.append(new Folder(id.originalUri))
+            setSourceFolder(currentFolder)
             Log.debug("Load dropbox folder:" + id.originalUri)
             fetchData(id.originalUri).catch((err) => {
                 Log.error("Loading Dropbox images error:" + err)
@@ -72,7 +111,7 @@ function imageUri(source): string {
             fileReaderInstance.onload = () => {
                 const data: string = fileReaderInstance.result
                 const uri = data.replace('application/octet-stream', 'image/jpeg')
-                Log.debug("Get Dropbox image as data Url: '" + uri + "' for: '" + source + "'");
+                Log.debug("Get Dropbox image as data url for: '" + source + "'");
                 setImageSource(uri);
             }
             fileReaderInstance.readAsDataURL(blob);
