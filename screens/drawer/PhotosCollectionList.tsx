@@ -4,11 +4,12 @@ import {getPlaceFolder} from "../../constants/Images";
 import {View} from "../../components/Themed";
 import {Caption} from "react-native-paper";
 import * as React from "react";
-import {useEffect, useState} from "react";
-import {getThumbsData} from "../../data/DropboxDataSource";
 import {theme} from "../../constants/themes";
 import {Item} from "linked-list";
 import * as Progress from 'react-native-progress';
+import {useEffect, useState} from "react";
+import {DataSourceProvider} from "../../data/DataSourceProvider";
+import {ServiceType} from "../../data/DataServiceConfig";
 
 export class Folder extends Item {
     readonly value?: string;
@@ -51,10 +52,24 @@ export const photosListView = (dataSource, onItemSelected, getThumbUri) => {
 
 
 const ImageSource = (item) => {
+    const [uri, setUri] = useState(null);
+    const [type, setType] = useState(item.item.type);
     const media = item.item
-    if (media.type !== 'album') {
-        const uri = item.getThumbUri(media.originalUri)
-        Log.debug("Render image  '" + media.originalUri + "'")
+
+    const fetchThumb = async (source) => {
+        return await item.getThumbUri(source).then( (src) => {
+            setUri(src)
+        })
+    }
+
+    useEffect(() => {
+        fetchThumb(media.originalUri).catch((err) => {
+            Log.error("Loading Thumb error:" + err)
+        });
+    }, []);
+
+    if (type !== 'album') {
+        Log.debug("Render image  '" + uri + "'")
         if( uri !== null) {
             return (<Image
                 style={styles.imageStyle}

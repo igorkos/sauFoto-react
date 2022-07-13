@@ -1,25 +1,12 @@
 import * as React from "react";
-import {
-    StyleSheet,
-    SafeAreaView,
-    FlatList,
-    TouchableOpacity,
-    Image,
-    ImageBackground,
-    Platform,
-    BackHandler
-} from 'react-native';
-
-import { Text, View } from '../../components/Themed';
-import {Component, FunctionComponent, useEffect, useState} from "react";
+import {Platform, BackHandler} from 'react-native';
+import {useEffect, useState} from "react";
 import {Log} from "../../hooks/log";
-import {theme} from "../../constants/themes";
-import {DropboxImages, getThumbsData, resetDropboxAccess} from "../../data/DropboxDataSource";
-import {Caption, Title} from "react-native-paper";
-
-import {getPlaceFolder} from "../../constants/Images";
-import {List, Item} from 'linked-list'
+import {List} from 'linked-list'
 import {Folder, photosListView} from "./PhotosCollectionList";
+import {DataSourceProvider} from "../../data/DataSourceProvider";
+import {ServiceType} from "../../data/DataServiceConfig";
+import {ThumbSize} from "../../constants/Images";
 
 
 
@@ -42,9 +29,9 @@ export default function DropboxScreen({ navigation }) {
         });
     }
     const fetchData = async (root) => {
-        return await DropboxImages(root).then( (photos) => {
+        return await DataSourceProvider.loadImages(ServiceType.Dropbox, root, '').then( (photos) => {
                 Log.debug("Loaded Dropbox images from: '" + root + "'");
-                setDataSource(photos)
+                setDataSource(photos.items)
             })
     }
 
@@ -73,7 +60,7 @@ export default function DropboxScreen({ navigation }) {
 function imageUri(source): string {
     const [imageSource, setImageSource] = useState(null);
     const fetchUri = async (path) => {
-        await getThumbsData(path).then( (blob) => {
+        await DataSourceProvider.getThumbsData(ServiceType.Dropbox, path, ThumbSize.THUMB_256).then( (blob) => {
             const fileReaderInstance = new FileReader();
             fileReaderInstance.onload = () => {
                 const data: string | ArrayBuffer = fileReaderInstance.result
