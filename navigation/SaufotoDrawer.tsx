@@ -7,8 +7,7 @@ import {
 import { StyleSheet } from 'react-native';
 import {Caption, Title, Avatar, Drawer} from "react-native-paper";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {StackActions} from "@react-navigation/native";
-import {AuthContext} from "./context";
+import {AuthContext} from "../components/context";
 
 
 const SaufotoDrawer = (props) => {

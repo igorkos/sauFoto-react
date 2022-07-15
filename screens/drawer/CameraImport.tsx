@@ -1,77 +1,77 @@
 import * as React from "react";
-import {Platform, StyleSheet, StatusBar, SafeAreaView, FlatList, TouchableOpacity} from 'react-native';
-import { Text, View } from '../../components/Themed';
-import FastImage from "react-native-fast-image";
+import {photosListView} from "./PhotosCollectionList";
+import {ServiceType} from "../../data/DataServiceConfig";
+import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import {theme} from "../../constants/themes";
-import {useEffect, useState} from "react";
-import * as MediaLibrary from "expo-media-library";
-import {CameraRollImages} from "../../data/CameraRollDataSource";
+import {View} from "react-native";
+import {HeaderBackButton} from "@react-navigation/elements";
 import {Log} from "../../hooks/log";
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MenuItem} from 'react-native-material-menu';
+import {useState} from "react";
+import {SMenu, Text} from "../../components/Themed";
 
-export default function CameraScreen({ navigation }) {
-    const [dataSource, setDataSource] = useState([]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            await MediaLibrary.requestPermissionsAsync()
-            const photos = await CameraRollImages()
-            Log.debug("Loading Camera Roll images:" + photos)
-            setDataSource(photos)
-        }
-        fetchData().catch((err) => {
-            Log.error("Loading Camera Roll images error:" + err)
-        });
-    }, []);
-
-    const showModalFunction = (id) => {
-        //handler to handle the click on image of Grid
-        //and close button on modal
-        navigation.navigate('ImageCarousel', {selected: id, collection:dataSource })
-    };
-
+const NavigationDrawerLeft = (props) => {
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.container}>
-                <FlatList
-                    data={dataSource}
-                    renderItem={({item}) => (
-                        <View style={styles.imageContainerStyle}>
-                            <TouchableOpacity
-                                key={item.id}
-                                style={{flex: 1}}
-                                onPress={() => {
-                                    showModalFunction(item.id);
-                                }}>
-                                <FastImage
-                                    style={styles.imageStyle}
-                                    source={{
-                                        uri: item.image,
-                                    }}
-                                />
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                    //Setting the number of column
-                    numColumns={3}
-                    keyExtractor={(item, index) => index.toString()}
-                />
-            </View>
-        </SafeAreaView>
+        <View style={{ height: '100%', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
+            <HeaderBackButton
+                label={'Back'}
+                onPress={() => {
+                    Log.debug('Header left press')
+                    props.navigationProps.navigate('Home')
+                }}
+            />
+        </View>
+    );
+};
+
+const PubSub = require('pubsub-js');
+
+const NavigationDrawerRight = (props) => {
+    const [visible, setVisible] = useState(false);
+    const hideMenu = () => {setVisible(false);}
+    const showMenu = () => setVisible(true);
+
+    const importToGallery = () => {
+        hideMenu()
+        Log.debug("'Add to Gallery' pressed")
+        PubSub.publish(ServiceType.Camera+'Menu', 'importToGallery');
+    }
+    const importToAlbum = () => {
+        hideMenu()
+        PubSub.publish(ServiceType.Camera+'Menu', 'importToAlbum');
+    }
+    return (
+        <View  style={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+            <SMenu visible={visible}
+                  anchor={ <Icon name={'menu'} color={theme.colors.text} size={25} onPress={showMenu}/>  }
+                  onRequestClose={hideMenu}>
+                <MenuItem disabledTextColor={theme.colors.text} onPress={importToGallery}><Text>Add to Gallery</Text> </MenuItem>
+                <MenuItem disabledTextColor={theme.colors.text} onPress={importToAlbum}><Text>Add to Album</Text></MenuItem>
+            </SMenu>
+        </View>
+    );
+};
+
+const Stack = createNativeStackNavigator();
+
+export function CameraNavigator({navigation}) {
+    return (
+        <Stack.Navigator>
+            <Stack.Screen  name="Camera" component={CameraScreen} options={{ headerShown: true,
+                headerStyle: {backgroundColor: theme.colors.headerBackground,},
+                headerTintColor: theme.colors.text,
+                headerLeft: () => (
+                    <NavigationDrawerLeft navigationProps={navigation}/>
+                ),
+                headerRight: () => (
+                    <NavigationDrawerRight navigationProps={navigation}/>
+                ),
+            }}/>
+        </Stack.Navigator>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    imageContainerStyle: {
-        flex: 1,
-        flexDirection: 'column',
-        margin: 1,
-    },
-    imageStyle: {
-        height: 120,
-        width: 120,
-    },
-});
+function CameraScreen({ navigation }) {
+    return photosListView(navigation, ServiceType.Camera)
+}

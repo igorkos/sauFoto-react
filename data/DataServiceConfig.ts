@@ -1,8 +1,14 @@
+import {authorize, revoke} from "react-native-app-auth";
+import {CameraProvider} from "./CameraRollDataSource";
+import {TestProvider} from "./ImageDataSource";
+
 const GOOGLE_OAUTH_APP_GUID = '962165832520-n4lj2iqr3bjge6kf9fp89b0rnrj6hf5r'
 
 export enum  ServiceType{
   Dropbox = 'Dropbox',
-  Google = 'Google'
+  Google = 'Google',
+  Camera = 'Camera',
+  Test = 'Test'
 }
 
 export interface ServiceTokens {
@@ -32,5 +38,38 @@ export const ServiceConfig = {
         redirectUrl: 'com.googleusercontent.apps.'+ GOOGLE_OAUTH_APP_GUID +':/oauth2redirect/google',
         scopes: ['openid', 'profile','https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata', 'https://www.googleapis.com/auth/photoslibrary','https://www.googleapis.com/auth/photoslibrary.readonly'],
         clientSecret: '',
+    },
+    Camera: {
+        issuer: 'camera',
+        clientId: 'saufoto.com',
+        redirectUrl: null,
+        clientSecret: 'saufoto.com',
+        scopes: []
+    },
+    Test: {
+        issuer: 'test',
+        clientId: 'saufoto.com',
+        redirectUrl: null,
+        clientSecret: 'saufoto.com',
+        scopes: []
+    }
+}
+
+export const ServiceConfigAuthMethods = {
+    Dropbox: {
+        authorize: authorize,
+        revoke: revoke,
+    },
+    Google: {
+        authorize: authorize,
+        revoke: revoke,
+    },
+    Camera: {
+        authorize: CameraProvider.authorize,
+        revoke: CameraProvider.revoke,
+    },
+    Test: {
+        authorize: TestProvider.authorize,
+        revoke: TestProvider.revoke,
     }
 }

@@ -10,6 +10,9 @@ import AlbumsScreen from "../screens/Albums";
 import ImageGallery from "../screens/ImageGallery";
 import {theme} from "../constants/themes";
 import ImageView from "../screens/ImageViewSource";
+import {HeaderBackButton} from "@react-navigation/elements";
+import {Log} from "../hooks/log";
+import {TouchableOpacity, View} from "react-native";
 
 /**
  * A bottom tab navigator displays tab buttons on the bottom of the display to switch screens.
@@ -17,18 +20,42 @@ import ImageView from "../screens/ImageViewSource";
  */
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export function RootNavigator() {
+const NavigationDrawerLeft = (props) => {
+    //Structure for the navigatin Drawer
+    const toggleDrawer = () => {
+        //Props to open/close the drawer
+        props.navigationProps.toggleDrawer();
+    };
+
+    return (
+        <View style={{ flexDirection: 'row', marginEnd:10}}>
+            <TouchableOpacity onPress={toggleDrawer}>
+                <Icon name={'menu'} color={theme.colors.text} size={25}/>
+            </TouchableOpacity>
+        </View>
+    );
+};
+
+export function RootNavigator({navigation}) {
     return (
         <Stack.Navigator
             screenOptions={{
                 headerStyle: {backgroundColor: theme.colors.headerBackground,},
                 headerTintColor: theme.colors.text,
-                headerTitleStyle: {fontWeight: 'bold',},
-                headerShown: false,
+                headerShown: true,
+
             }}>
-            <Stack.Screen  name="Home" component={BottomTabNavigator} options={{ headerShown: false }} />
+            <Stack.Screen  name="Home" component={BottomTabNavigator} options={{
+                title:"Gallery",
+                headerShown: true,
+                headerStyle: {backgroundColor: theme.colors.headerBackground,},
+                headerTintColor: theme.colors.text,
+                headerLeft: () => (
+                    <NavigationDrawerLeft navigationProps={navigation} />
+                ),
+            }}/>
             <Stack.Group screenOptions={{presentation: 'modal'}}>
-                <Stack.Screen  name="ImageCarousel" component={ImageView} options={{ headerShown: false }} />
+                <Stack.Screen  name="ImageCarousel" component={ImageView}  />
             </Stack.Group>
         </Stack.Navigator>
     );

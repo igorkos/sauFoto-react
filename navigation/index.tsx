@@ -4,7 +4,7 @@
  *
  */
 import * as React from 'react';
-import { NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/native';
 import {DrawerNavigator} from './DrawerNavigator';
 import {theme} from "../constants/themes";
 import AsyncStorage from "@react-native-community/async-storage";
@@ -121,8 +121,8 @@ export default function Navigation() {
     return (
         <PaperProvider theme={theme}>
             <AuthContext.Provider value={authContext}>
-                <NavigationContainer theme={theme}>
-                    {loginState.userToken === null ? (<StatusBar backgroundColor={theme.colors.background} barStyle={theme.dark ? 'dark-content' : 'light-content'} />) : (<StatusBar hidden={true} />)}
+                <NavigationContainer theme={theme} >
+                    {loginState.userToken === null ? (<StatusBar backgroundColor={theme.colors.headerBackground} barStyle={theme.dark ? 'light-content' : 'dark-content'} />) : (<StatusBar hidden={true} />)}
                     {loginState.userToken === null ? (DrawerNavigator()):(RootStackScreen())}
                 </NavigationContainer>
             </AuthContext.Provider>

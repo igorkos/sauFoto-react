@@ -3,6 +3,8 @@ import * as React from "react";
 const Placeholders = {
     folder: require('../assets/images/folder_blue.png'),
     image: require('../assets/images/image_placeholder.png'),
+    select: require('../assets/images/asset_select_icon.png'),
+    imageError: require('../assets/images/error_load_image.png'),
 };
 
 export function getPlaceFolder(image) {
@@ -12,6 +14,12 @@ export function getPlaceFolder(image) {
         }
         case 'image_placeholder.png' :{
             return Placeholders.image
+        }
+        case 'asset_select_icon.png' :{
+            return Placeholders.select
+        }
+        case 'error_load_image.png' :{
+            return Placeholders.imageError
         }
     }
 }

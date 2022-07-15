@@ -1,3 +1,4 @@
+
 export interface SaufotoImage extends SaufotoMedia {
 
     /**
@@ -21,13 +22,38 @@ export interface SaufotoImage extends SaufotoMedia {
     /**
      * Date when image was added
      */
-    dateAdded: Date
+    dateAdded?: Date
 
     /**
      * Image mime type
      */
     mime_type?: string
 }
+
+export function saufotoImage():SaufotoImage {
+    return {
+        id: 'unknown',
+        update: 'unknown',
+        remoteSyncOp: 'unknown',
+        origin: 'unknown',
+        originId: 'unknown',
+        type: 'image',
+        uri: 'unknown',
+        originalUri: 'unknown',
+        placeHolderImage: 'image_placeholder.png',
+        errorImage: 'error_load_image.png',
+        title: null,
+        selected: false,
+        sync: false,
+        dateTaken: null,
+        editedImageUrl: null,
+        originalImageBSFile: null,
+        editedImageBSFile: null,
+        dateAdded: null,
+        mime_type: null
+    }
+}
+
 
 export interface SaufotoAlbum extends SaufotoMedia {
 
@@ -97,6 +123,8 @@ export interface SaufotoMedia {
     originalUri: string
 
     placeHolderImage: string
+
+    errorImage: string
     /**
      *  Album title
      */

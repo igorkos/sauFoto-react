@@ -8,6 +8,10 @@ import {Text as DefaultText, useWindowDimensions, View as DefaultView} from 'rea
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 
+import {Menu, MenuProps} from 'react-native-material-menu';
+import * as Progress from 'react-native-progress';
+import {CirclePropTypes} from "react-native-progress";
+
 export function useThemeColor(
   props: { light?: string; dark?: string },
   colorName: keyof typeof Colors.light & keyof typeof Colors.dark
@@ -44,6 +48,22 @@ export function View(props: ViewProps) {
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
 }
 
+
+
 const screen = useWindowDimensions()
 export var screenHeight = screen.height
 export var screenWidth = screen.width
+
+interface MenuFix extends React.Component<MenuProps> {}
+
+export const SMenu = (Menu as any) as {
+  new(): MenuFix;
+};
+
+interface ProgressCircledFix extends React.Component<CirclePropTypes> {}
+
+export const ProgressCircle = (Progress.Circle as any) as {
+  new(): ProgressCircledFix;
+};
+
+

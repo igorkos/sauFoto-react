@@ -1,10 +1,11 @@
 import {Log} from "../hooks/log";
 import {revoke} from "react-native-app-auth";
 import AsyncStorage from "@react-native-community/async-storage";
-import {SaufotoImage} from "./SaufotoImage";
+import {saufotoImage, SaufotoImage} from "./SaufotoImage";
 import {authorizeWith} from "./AuthorizationProvicer";
 import {ServiceType} from "./DataServiceConfig";
 import {ThumbSize} from "../constants/Images";
+import {LoadImagesResponse} from "./DataSourceProvider";
 
 export namespace GoogleProvider {
     interface GoogleMediaListRequest {
@@ -60,8 +61,13 @@ export namespace GoogleProvider {
 
     const GOOGLE_MEDIA_ITEMS = 'https://photoslibrary.googleapis.com/v1/mediaItems'
 
-    export async function loadImages(config, root, page) {
-        const response = await fetch(GOOGLE_MEDIA_ITEMS + "?pageSize=50", {
+    export async function loadImages(config, root, page): Promise<LoadImagesResponse> {
+        let request = GOOGLE_MEDIA_ITEMS + "?pageSize=50"
+        if( page !== null ) {
+            request = request + '&pageToken=' + page
+        }
+        Log.debug("Load google items:" + request)
+        const response = await fetch(request, {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -70,7 +76,6 @@ export namespace GoogleProvider {
             }
         }).then((response) => {
                 if (response.ok) {
-                    Log.debug("Google photos body: " + response.body)
                     return response.json()
                 } else {
                     return null
@@ -79,15 +84,13 @@ export namespace GoogleProvider {
         )
         const items = Array.apply(null, Array(response.mediaItems.length)).map((v, i) => {
             let entry = response.mediaItems[i]
-            let object = {} as SaufotoImage
+            let object = saufotoImage()
             object.id = entry.id
-            object.type = 'image'
             object.title = entry.filename
-            object.placeHolderImage = 'image_placeholder.png'
             object.originalUri = entry.baseUrl
             return object
         })
-        return {nextPage: response.nextPageToken, items: items}
+        return {nextPage: response.nextPageToken, items: items, hasMore: (response.nextPageToken !== undefined) }
     }
 
     export async function getThumbsData(path, size: ThumbSize) {

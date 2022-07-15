@@ -3,9 +3,10 @@ import {Log} from "../hooks/log";
 import {Dropbox, DropboxAuth, files} from "dropbox";
 import {authorize, logout, revoke} from "react-native-app-auth";
 import AsyncStorage from "@react-native-community/async-storage";
-import {SaufotoImage, SaufotoAlbum} from "./SaufotoImage"
+import {SaufotoImage, SaufotoAlbum, saufotoImage} from "./SaufotoImage"
 import {authorizeWith} from "./AuthorizationProvicer";
 import {ServiceType} from "./DataServiceConfig";
+import {LoadImagesResponse} from "./DataSourceProvider";
 
 const okFileExtensions = Array(".jpg", ".jpeg", ".png", ".gif", ".heic")
 
@@ -23,7 +24,7 @@ export namespace DropboxProvider {
         });
     }
 
-    export async function loadImages(config, root, page) {
+    export async function loadImages(config, root, page): Promise<LoadImagesResponse> {
         const dbx = await dropboxInstance()
         const photosTemp = await dbx.filesListFolder({path: root})
         Log.debug("Received Dropbox images:" + photosTemp.result.entries.length)
@@ -48,11 +49,9 @@ export namespace DropboxProvider {
                 object.placeHolderImage = 'folder_blue.png'
                 object.originalUri = dbxEntry.path_lower
             } else if (dbxEntry['.tag'] === 'file') {
-                object = {} as SaufotoImage
+                object = saufotoImage()
                 object.id = dbxEntry.id
-                object.type = 'image'
                 object.title = dbxEntry.name
-                object.placeHolderImage = 'image_placeholder.png'
                 object.originalUri = dbxEntry.path_lower
             }
             return object;

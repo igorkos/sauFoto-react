@@ -17,7 +17,7 @@ export default function DropboxScreen({ navigation }) {
     if(Platform.OS === 'android') {
         BackHandler.addEventListener('hardwareBackPress', function () {
             if (currentFolder.tail.prev === null) {
-                this.goBack();
+                navigation.goBack();
                 return false;
             }
             currentFolder.tail.detach()
