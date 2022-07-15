@@ -10,7 +10,7 @@ import {ThumbSize} from "../../constants/Images";
 
 
 
-export default function DropboxScreen({ navigation }) {
+export default function DropboxScreen({ navigation, route }) {
     const [dataSource, setDataSource] = useState([]);
     const [currentFolder, setSourceFolder] = useState(new List(new Folder(null),new Folder('')));
 
@@ -54,7 +54,7 @@ export default function DropboxScreen({ navigation }) {
         }
     };
 
-    return photosListView(dataSource, onItemSelected, imageUri)
+    return photosListView(dataSource, route, onItemSelected, imageUri)
 }
 
 function imageUri(source): string {

@@ -56,4 +56,10 @@ export namespace CameraProvider {
     export async function getThumbsData(path, size: ThumbSize) {
         return path
     }
+
+    export async function loadAlbums(config, root, page): Promise<LoadImagesResponse> {
+        return new Promise((resolve, reject) => {
+            resolve({nextPage: null, items: [], hasMore:false})
+        })
+    }
 }

@@ -12,50 +12,42 @@ export const DataProviders = {
     Dropbox: {
         loadImages: DropboxProvider.loadImages,
         getThumbsData: DropboxProvider.getThumbsData,
-        imageLoadQueue: new Queue(),
+        loadAlbums: DropboxProvider.loadAlbums,
     },
     Google: {
         loadImages: GoogleProvider.loadImages,
         getThumbsData: GoogleProvider.getThumbsData,
-        imageLoadQueue: new Queue(),
+        loadAlbums: GoogleProvider.loadAlbums,
     },
     Camera: {
         loadImages: CameraProvider.loadImages,
         getThumbsData: CameraProvider.getThumbsData,
-        imageLoadQueue: new Queue(),
+        loadAlbums: CameraProvider.loadAlbums,
     },
     Test: {
         loadImages: TestProvider.loadImages,
         getThumbsData: TestProvider.getThumbsData,
-        imageLoadQueue: new Queue(),
+        loadAlbums: TestProvider.loadAlbums,
     }
 }
 
 export interface LoadImagesResponse {
-    items: [SaufotoMedia],
+    items: [],
     nextPage: string,
     hasMore:boolean
 }
 
 export namespace DataSourceProvider {
 
-    export function scheduleLoading(type: ServiceType, root) {
-        const queue = DataProviders[type].imageLoadQueue
-        queue.push({root:root})
-    }
-
-    export function isLoading(type: ServiceType) {
-        return DataProviders[type].imageLoadQueue.length > 0
-    }
-
     export async function loadImages(type: ServiceType, root, page): Promise<LoadImagesResponse> {
         const config = await authorizeWith(type)
-        return  await DataProviders[type].loadImages(config, root, page).then((items) =>{
-            DataProviders[type].imageLoadQueue.shift()
-            return items
-        })
+        return  await DataProviders[type].loadImages(config, root, page)
     }
 
+    export async function loadAlbums(type: ServiceType, root, page): Promise<LoadImagesResponse> {
+        const config = await authorizeWith(type)
+        return  await DataProviders[type].loadAlbums(config, root, page)
+    }
     export async function getThumbsData(type: ServiceType, path: string, size: ThumbSize) {
         return await DataProviders[type].getThumbsData(path, size)
     }

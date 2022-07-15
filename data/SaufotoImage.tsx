@@ -79,6 +79,29 @@ export interface SaufotoAlbum extends SaufotoMedia {
 
 }
 
+export function saufotoAlbum():SaufotoAlbum {
+    return {
+        id: 'unknown',
+        update: 'unknown',
+        remoteSyncOp: 'unknown',
+        origin: 'unknown',
+        originId: 'unknown',
+        type: 'album',
+        uri: 'unknown',
+        originalUri: 'unknown',
+        placeHolderImage: 'image_placeholder.png',
+        errorImage: 'error_load_image.png',
+        title: null,
+        selected: false,
+        sync: false,
+        dateTaken: null,
+        coverImage: null,
+        subTitle: null,
+        count: 0,
+        images: null,
+    }
+}
+
 export interface SaufotoMedia {
     /**
      *  Unique asset id

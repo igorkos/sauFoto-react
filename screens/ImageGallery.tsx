@@ -3,6 +3,6 @@ import { RootTabScreenProps } from './drawer/types';
 import {photosListView} from "./drawer/PhotosCollectionList";
 import {ServiceType} from "../data/DataServiceConfig";
 
-export default function SaufotoGalleryScreen({ navigation }: RootTabScreenProps<'GalleryScreen'>) {
-    return photosListView(navigation, ServiceType.Test)
+export default function SaufotoGalleryScreen({ navigation, route }: RootTabScreenProps<'GalleryScreen'>) {
+    return photosListView(navigation, route, ServiceType.Test, false)
 }

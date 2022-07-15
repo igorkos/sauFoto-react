@@ -59,6 +59,7 @@
     "react-native-fast-image": "^8.5.11",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~2.5.0",
+    "@coffeebeanslabs/react-native-inviewport": "^0.2.0",
     "react-native-linear-gradient": "^2.6.2",
     "react-native-logs": "^5.0.1",
     "react-native-material-menu": "^2.0.0",

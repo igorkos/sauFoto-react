@@ -77,4 +77,9 @@ export namespace DropboxProvider {
         return blob
     }
 
+    export async function loadAlbums(config, root, page): Promise<LoadImagesResponse> {
+        return new Promise((resolve, reject) => {
+            resolve({nextPage: null, items: [], hasMore:false})
+        })
+    }
 }
