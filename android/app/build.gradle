@@ -177,8 +177,8 @@ android {
         }
 
         manifestPlaceholders = [
-            appAuthRedirectScheme:'com.googleusercontent.apps.962165832520-n4lj2iqr3bjge6kf9fp89b0rnrj6hf5r'
-            //'com.saufoto'
+            //appAuthRedirectScheme:'com.googleusercontent.apps.962165832520-n4lj2iqr3bjge6kf9fp89b0rnrj6hf5r'
+            appAuthRedirectScheme:'com.saufoto'
         ]
 
     }

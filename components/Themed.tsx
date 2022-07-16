@@ -48,12 +48,6 @@ export function View(props: ViewProps) {
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
 }
 
-
-
-const screen = useWindowDimensions()
-export var screenHeight = screen.height
-export var screenWidth = screen.width
-
 interface MenuFix extends React.Component<MenuProps> {}
 
 export const SMenu = (Menu as any) as {

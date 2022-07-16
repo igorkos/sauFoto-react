@@ -1,11 +1,10 @@
 import * as React from 'react';
-import {screenHeight, screenWidth, View} from '../components/Themed';
-import {useState, useEffect} from 'react';
 import Carousel from 'react-native-snap-carousel';
-import FastImage from 'react-native-fast-image';
 import {theme} from "../constants/themes";
 import {Log} from "../hooks/log";
 import PhotoView from 'react-native-photo-view';
+import {View} from "../components/Themed";
+import {screenHeight, screenWidth} from "../constants/Layout";
 
 export default function ImageView({navigation, route}) {
     Log.debug("Image Preview: start position " + route.params.selected)

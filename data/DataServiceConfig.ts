@@ -4,13 +4,6 @@ import {TestProvider} from "./ImageDataSource";
 
 const GOOGLE_OAUTH_APP_GUID = '962165832520-n4lj2iqr3bjge6kf9fp89b0rnrj6hf5r'
 
-export enum  ServiceType{
-  Dropbox = 'Dropbox',
-  Google = 'Google',
-  Camera = 'Camera',
-  Test = 'Test'
-}
-
 export interface ServiceTokens {
     clientId: string,
     accessToken: string,

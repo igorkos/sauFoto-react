@@ -5,7 +5,7 @@ import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfigu
 import {PermissionStatus} from "expo-modules-core/src/PermissionsInterface";
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
-import {saufotoImage} from "./SaufotoImage";
+import {SaufotoAlbum, saufotoImage} from "./SaufotoImage";
 
 
 export namespace CameraProvider {
@@ -53,7 +53,7 @@ export namespace CameraProvider {
         return {nextPage: items[items.length - 1].id, items: items, hasMore: !(photosTemp.assets.length < 50)}
     }
 
-    export async function getThumbsData(path, size: ThumbSize) {
+    export async function getThumbsData(config, path, size: ThumbSize) {
         return path
     }
 
@@ -61,5 +61,9 @@ export namespace CameraProvider {
         return new Promise((resolve, reject) => {
             resolve({nextPage: null, items: [], hasMore:false})
         })
+    }
+
+    export function albumId(media:SaufotoAlbum) {
+        return media.id
     }
 }

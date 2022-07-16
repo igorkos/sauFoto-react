@@ -3,42 +3,26 @@ import {
     BackHandler,
     FlatList,
     Image,
-    ImageBackground,
     Platform,
     SafeAreaView,
     StyleSheet, Switch,
     TouchableOpacity
 } from "react-native";
 import {getPlaceFolder, ThumbSize} from "../../constants/Images";
-import {screenWidth, View, ProgressCircle, Text} from "../../components/Themed";
+import { View, ProgressCircle, Text} from "../../components/Themed";
 import * as React from "react";
 import {theme} from "../../constants/themes";
-import {Item} from "linked-list";
 import {useEffect, useState} from "react";
 import {DataSourceProvider} from "../../data/DataSourceProvider";
-import {ServiceType} from "../../data/DataServiceConfig";
-import Colors from "../../constants/Colors";
 import FastImage from 'react-native-fast-image';
 import {SaufotoAlbum, SaufotoImage} from "../../data/SaufotoImage";
 import {MediaContext} from "../../navigation/DrawerNavigator";
 import InViewPort from "@coffeebeanslabs/react-native-inviewport"
-export class Folder extends Item {
-    readonly value?: string;
+import {ServiceType} from "../../data/ServiceType";
+import {FlatListItemSizes} from "../../constants/Layout";
 
-    constructor(value) {
-        super()
-        this.value = value
-    }
 
-    toString() {
-        return this.value
-    }
-}
 const PubSub = require('pubsub-js');
-const imageSize = screenWidth/3 - 2
-const albumWidth = screenWidth/2 - 6
-const albumHeight = (screenWidth/2 - 6) + 40
-
 
 export const photosListView = (navigation, route, type:ServiceType, albums: boolean) => {
     const {importGallery} = React.useContext(MediaContext);
@@ -53,7 +37,7 @@ export const photosListView = (navigation, route, type:ServiceType, albums: bool
     const [events, setEvent] = useState('');
     const [visible, setVisible] = useState(true);
     const [token, setToken] = useState(null);
-
+    const [root] = useState(route.params !== undefined ? (route.params.albumId === undefined ? null:route.params.albumId):null);
 
     const menuSubscriber =  (msg, data) => {
         setEvent(data)
@@ -86,13 +70,14 @@ export const photosListView = (navigation, route, type:ServiceType, albums: bool
         return await DataSourceProvider.getThumbsData(type, source, ThumbSize.THUMB_256)
     }
 
-    const fetchData = async (root) => {
-        setLoading(true)
-        if(albums) {
-            return await DataSourceProvider.loadAlbums(type, root, currentPage)
-        } else {
-            const albumId = route.params !== undefined ? (route.params.albumId === undefined ? null:route.params.albumId):null
-            return await DataSourceProvider.loadImages(type, albumId, currentPage)
+    const fetchData = async () => {
+        if(visible) {
+            setLoading(true)
+            if (albums) {
+                return await DataSourceProvider.loadAlbums(type, root, currentPage)
+            } else {
+                return await DataSourceProvider.loadImages(type, root, currentPage)
+            }
         }
     }
 
@@ -121,10 +106,10 @@ export const photosListView = (navigation, route, type:ServiceType, albums: bool
     useEffect(() => {
         Log.debug(type + " nextPage event page: " + nextPage)
         if(hasMore && !isLoading && nextPage > 0) {
-            fetchData(null).then((images) => {
+            fetchData().then((images) => {
                 updateDataSource(images)
             }).catch((err) => {
-                Log.error("Loading " + type + "images error:" + err)
+                Log.error("Loading " + type + "images error: " + err)
             });
         }
     }, [nextPage]);
@@ -132,27 +117,27 @@ export const photosListView = (navigation, route, type:ServiceType, albums: bool
     useEffect(() => {
         Log.debug(type + " isLoading event page: " + nextPage + " isLoading: " + isLoading)
         if(!isLoading && nextPage > 0 ) {
-            fetchData(null).then((images) => {
+            fetchData().then((images) => {
                 updateDataSource(images)
             }).catch((err) => {
-                Log.error("Loading " + type + "images error:" + err)
+                Log.error("Loading " + type + "images error: " + err)
             });
         }
     }, [isLoading]);
 
     useEffect(() => {
         Log.debug(type + " global event page: " + nextPage + " isLoading: " + isLoading)
-        fetchData(null).then((images) => {
+        fetchData().then((images) => {
            // Log.debug("Load " + type + "images :" + JSON.stringify(images))
             updateDataSource(images)
         }).catch((err) => {
-            Log.error("Loading " + type + "images error:" + err)
+            Log.error("Loading " + type + "images error: " + err)
         });
     }, []);
 
     const onItemSelected = (item) => {
         if(albums) {
-            navigation.push('GoogleAlbumImages', {albumId: item.id})
+            navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item)})
         } else {
             item.selected = !item.selected
         }
@@ -197,33 +182,28 @@ export const photosListView = (navigation, route, type:ServiceType, albums: bool
         }
     }
 
-    const height = albums ? albumHeight : styles.imageStyle.height
+    const height = albums ? FlatListItemSizes[type].album.layout : FlatListItemSizes[type].image.layout
     return (
         <InViewPort onChange={(isVisible) => checkVisible(isVisible)} style={styles.container}>
             <SafeAreaView style={styles.container}>
-
-                <View style={styles.container}>
-                    <FlatList
-                        data={dataSource}
-                        extraData={hasMore}
-                        getItemLayout={(data, index) => (
-                            {length: height, offset: height * index, index}
-                        )}
-                        renderItem={({item}) => (
-                            <View style={styles.imageContainerStyle}>
-                                <ImageSource item={item} getThumbUri={imageUri} mode={albumsPreview} onSelected={onItemSelected}/>
-                            </View>
-                        )}
-                        numColumns={(albums ? 2 : 3)}
-                        initialNumToRender={21}
-                        onEndReachedThreshold={0.5}
-                        keyExtractor={(item, index) => index.toString()}
-                        onMomentumScrollBegin={onMomentumScrollBegin}
-                        onEndReached={onEndReached}
-                        ListFooterComponent={footer(hasMore)}
-                    />
-                    <AlbumsPreview albums={albums} callback={toggleSwitch} state={albumsPreview}/>
-                </View>
+                <FlatList
+                    data={dataSource}
+                    extraData={hasMore}
+                    getItemLayout={(data, index) => (
+                        {length: height, offset: height * index, index}
+                    )}
+                    renderItem={({item}) => (
+                        <ImageSource item={item} getThumbUri={imageUri} mode={albumsPreview} onSelected={onItemSelected} dataProvider={type}/>
+                    )}
+                    numColumns={(albums ? 2 : 3)}
+                    initialNumToRender={21}
+                    onEndReachedThreshold={0.5}
+                    keyExtractor={(item, index) => index.toString()}
+                    onMomentumScrollBegin={onMomentumScrollBegin}
+                    onEndReached={onEndReached}
+                    ListFooterComponent={footer(hasMore)}
+                />
+                <AlbumsPreview albums={albums} callback={toggleSwitch} state={albumsPreview}/>
             </SafeAreaView>
         </InViewPort>
     );
@@ -234,7 +214,9 @@ const AlbumsPreview = (props) => {
     const sFont =  props.state ? 'bold':'normal'
     return props.albums ? (
         <View style={styles.previewStyle}>
-            <Text style={{flexDirection:'row', marginEnd:10, fontWeight:bFont}} onPress={() =>{props.callback(false)}}>Browse</Text>
+            <TouchableOpacity style={{...styles.caption, height:'100%', marginEnd:10,}} onPress={() =>{props.callback(false)}}>
+                <Text style={{...styles.caption, fontWeight:bFont}} >Browse</Text>
+            </TouchableOpacity>
             <Switch
                 style={styles.switchStyle}
                 trackColor={{ false: theme.colors.tint, true: theme.colors.tint }}
@@ -242,7 +224,9 @@ const AlbumsPreview = (props) => {
                 ios_backgroundColor={theme.colors.background}
                 value={props.state}
             />
-            <Text style={{flexDirection:'row', marginStart:10, marginEnd:10, fontWeight:sFont}} onPress={() =>{props.callback(true)}}>Select</Text>
+            <TouchableOpacity style={{...styles.caption, height:'100%',  marginStart:10, marginEnd:10,}} onPress={() =>{props.callback(true)}}>
+                <Text style={{...styles.caption, fontWeight:sFont}} onPress={() =>{props.callback(true)}}>Select</Text>
+            </TouchableOpacity>
         </View>
     ):(<View style={{flex:1,height:0}}/>)
 }
@@ -286,7 +270,6 @@ const ImageSource = (props) => {
                 media.selected = !media.selected
                 setSelected(media.selected)
             }
-            //navigation.navigate('ImageCarousel', {selected: item.id, collection: dataSource})
         }
     };
 
@@ -297,50 +280,39 @@ const ImageSource = (props) => {
         return null
     }
 
-    const CaptionView = (props) => {
+    const CaptionView = (captionProps) => {
         return type === 'album' ? (
             <View style={{height:40, marginTop:5, marginBottom:2}}>
-                <Text style={styles.caption}>{props.title}</Text>
-                <Text style={styles.caption}>{props.count}</Text>
+                <Text style={styles.caption}>{captionProps.title}</Text>
+                <Text style={styles.caption}>{captionProps.count}</Text>
             </View>
         ):(<View style={{flex:1,height:0}}/>)
     }
-    const imageStyle = type === 'album' ? styles.albumStyle:styles.imageStyle
+    const imageStyle = type === 'album' ? {...styles.albumStyle,  height: FlatListItemSizes[props.dataProvider].album.height, width: FlatListItemSizes[props.dataProvider].album.width,}:
+        {...styles.imageStyle,  height: FlatListItemSizes[props.dataProvider].image.height, width: FlatListItemSizes[props.dataProvider].image.width,}
     //Log.debug("Render image  '" + uri + "'")
-    if( uri !== null) {
-        return (
-            <TouchableOpacity
-                key={media.id}
-                style={{flex: 1}}
-                onPress={() => {
-                    onItemSelected();
+    const image = error ?  media.errorImage:media.placeHolderImage
+    const source = uri === null ? getPlaceFolder(image):{uri:uri, priority: FastImage.priority.low,}
+    return (
+        <TouchableOpacity
+            key={media.id}
+            style={{flex: 1}}
+            onPress={() => {
+                onItemSelected();
+            }}>
+            <FastImage
+                style={(imageStyle)}
+                source={source}
+                onError={ () => {
+                    Log.error("Loading Thumb error:" + uri)
+                    setError(true)
+                    setUri(null)
                 }}>
-                <FastImage
-                    style={(imageStyle)}
-                    source={{
-                        uri:uri,
-                        priority: FastImage.priority.low,
-                    }}
-                    onError={ () => {
-                        Log.error("Loading Thumb error:" + uri)
-                        setError(true)
-                        setUri(null)
-                    }}>
-                    <Image style={styles.selectStyle} source={selectShow()}/>
-                </FastImage>
-                <CaptionView title={media.title} count={"count" in media ? media.count :0}/>
-            </TouchableOpacity>
-        )
-    } else {
-        //Log.debug("Render Image  '" + media.originalUri + "'")
-        const image = error ?  media.errorImage:media.placeHolderImage
-        return (
-            <ImageBackground
-                style={styles.imageStyle}
-                source={getPlaceFolder(image)}>
-            </ImageBackground>
-        )
-    }
+                <Image style={styles.selectStyle} source={selectShow()}/>
+            </FastImage>
+            <CaptionView title={media.title} count={"count" in media ? media.count :null}/>
+        </TouchableOpacity>
+    )
 }
 
 const styles = StyleSheet.create({
@@ -349,13 +321,13 @@ const styles = StyleSheet.create({
         backgroundColor: theme.colors.background,
     },
     caption: {
-        flex: 1,
-        justifyContent: 'center',
+        flexDirection:'row',
         fontSize: 14,
         lineHeight: 14,
-        height:16,
         numberOfLines:1,
-        ellipsizeMode:'tail'
+        ellipsizeMode:'tail',
+        alignItems: 'center',
+        justifyContent: 'center'
     },
     imageContainerStyle: {
         flex: 1,
@@ -363,9 +335,6 @@ const styles = StyleSheet.create({
         margin: 1,
     },
     imageStyle: {
-        flex: 1,
-        height: imageSize,
-        width: imageSize,
         borderWidth: 1,
         borderRadius: 3,
         borderColor:theme.colors.tint,
@@ -374,22 +343,12 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
     },
     albumStyle: {
-        flex: 1,
-        height: albumWidth,
-        width: albumWidth,
         borderWidth: 1,
         borderRadius: 5,
         borderColor:theme.colors.tint,
-        elevation:5,
+        elevation:1,
         alignItems: 'flex-end',
         justifyContent: 'flex-start',
-    },
-    tempStyle: {
-        height: imageSize,
-        width: imageSize,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: Colors.light.text
     },
     selectStyle: {
         height: 30,
@@ -408,6 +367,7 @@ const styles = StyleSheet.create({
     },
     switchStyle: {
         flexDirection:'row',
+        height:'100%',
     },
     previewStyle: {
         flexDirection:'row',

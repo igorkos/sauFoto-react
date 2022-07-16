@@ -1,7 +1,8 @@
 import {Log} from "../hooks/log";
 import {AuthorizeResult} from "react-native-app-auth";
-import {ServiceConfig, ServiceConfigAuthMethods, ServiceTokens, ServiceType} from "./DataServiceConfig";
+import {ServiceConfig, ServiceConfigAuthMethods, ServiceTokens} from "./DataServiceConfig";
 import {Preferences} from "./PreferenceStorage";
+import {ServiceType} from "./ServiceType";
 
 function processAuthResponse(type: ServiceType, response: AuthorizeResult) : ServiceTokens {
     return {
@@ -48,7 +49,7 @@ export async function reset(type: ServiceType) {
             scopes: ServiceConfig[type].scopes,
         };
 
-        const result = await ServiceConfigAuthMethods[type].revoke(config, {
+        await ServiceConfigAuthMethods[type].revoke(config, {
             tokenToRevoke: token.accessToken,
             includeBasicAuth: true,
             sendClientId: true,

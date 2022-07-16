@@ -3,7 +3,7 @@ import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfigu
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {Log} from "../hooks/log";
-import {saufotoImage} from "./SaufotoImage";
+import {SaufotoAlbum, saufotoImage} from "./SaufotoImage";
 
 export namespace TestProvider {
 
@@ -48,9 +48,13 @@ export namespace TestProvider {
         })
     }
 
-    export async function getThumbsData(path, size: ThumbSize) {
+    export async function getThumbsData(config, path, size: ThumbSize) {
         return new Promise((resolve, reject) => {
             resolve(path)
         })
+    }
+
+    export function albumId(media:SaufotoAlbum) {
+        return media.id
     }
 }

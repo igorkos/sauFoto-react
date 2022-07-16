@@ -1,17 +1,14 @@
 import * as React from "react";
 import {photosListView} from "./PhotosCollectionList";
-import {ServiceType} from "../../data/DataServiceConfig";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import {theme} from "../../constants/themes";
 import {NavigationDrawerBack, NavigationDrawerRightImportImages} from "../../components/NavigationBar/DrawerButtons";
 import useColorScheme from "../../hooks/useColorScheme";
 import {getFocusedRouteNameFromRoute} from "@react-navigation/native";
-import ImageGallery from "../ImageGallery";
 import {RootTabParamList, RootTabScreenProps} from "./types";
-import AlbumsScreen from "../Albums";
-import CameraScreen from "../Camera";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
+import {ServiceType} from "../../data/ServiceType";
 
 const Stack = createNativeStackNavigator();
 

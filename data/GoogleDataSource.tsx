@@ -1,9 +1,5 @@
 import {Log} from "../hooks/log";
-import {revoke} from "react-native-app-auth";
-import AsyncStorage from "@react-native-community/async-storage";
-import {saufotoAlbum, saufotoImage, SaufotoImage} from "./SaufotoImage";
-import {authorizeWith} from "./AuthorizationProvicer";
-import {ServiceType} from "./DataServiceConfig";
+import {SaufotoAlbum, saufotoAlbum, saufotoImage, SaufotoImage} from "./SaufotoImage";
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 
@@ -195,8 +191,11 @@ export namespace GoogleProvider {
         })
     }
 
-    export async function getThumbsData(path, size: ThumbSize) {
+    export async function getThumbsData(config, path, size: ThumbSize) {
         return path + '=' + size
     }
 
+    export function albumId(media:SaufotoAlbum) {
+        return media.id
+    }
 }

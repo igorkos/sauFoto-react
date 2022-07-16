@@ -1,9 +1,9 @@
 import * as React from "react";
 import {photosListView} from "./PhotosCollectionList";
-import {ServiceType} from "../../data/DataServiceConfig";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import {theme} from "../../constants/themes";
 import {NavigationDrawerBack, NavigationDrawerRightImportImages} from "../../components/NavigationBar/DrawerButtons";
+import {ServiceType} from "../../data/ServiceType";
 
 const Stack = createNativeStackNavigator();
 

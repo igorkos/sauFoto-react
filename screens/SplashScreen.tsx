@@ -13,10 +13,10 @@ import {theme} from "../constants/themes";
 import * as Animatable from 'react-native-animatable';
 import {AuthContext} from "../components/context";
 import users from "../stacks/users";
-import {screenWidth} from "../components/Themed";
 import { Camera} from 'expo-camera';
 import {Log} from "../hooks/log";
 import {useEffect} from "react";
+import {screenWidth} from "../constants/Layout";
 
 
 export function SplashScreen({navigation}){

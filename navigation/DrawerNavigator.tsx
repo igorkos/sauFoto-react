@@ -1,6 +1,6 @@
 import * as React from "react";
 import SaufotoDrawer from './SaufotoDrawer';
-import DropboxScreen from '../screens/drawer/Dropbox';
+import {DropboxNavigator} from '../screens/drawer/Dropbox';
 import SettingsScreen from '../screens/drawer/Settings';
 import AboutScreen from '../screens/drawer/About';
 import {RootNavigator} from './BottomTabNavigation';
@@ -35,7 +35,7 @@ export function DrawerNavigator() {
                 <Drawer.Screen name="Gallery" component={RootNavigator} />
                 <Drawer.Screen name="Camera" component={CameraNavigator} />
                 <Drawer.Screen name="Google" component={GoogleNavigator}/>
-                <Drawer.Screen name="Dropbox" component={DropboxScreen}/>
+                <Drawer.Screen name="Dropbox" component={DropboxNavigator}/>
                 <Drawer.Screen name="Settings" component={SettingsScreen}/>
                 <Drawer.Screen name="About" component={AboutScreen}/>
                 <Drawer.Screen name="SplashScreen" component={SplashScreen}/>
