@@ -9,28 +9,33 @@ import {RootTabParamList, RootTabScreenProps} from "./types";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {ServiceType} from "../../data/ServiceType";
+import { ColorValue } from "react-native";
 
 const Stack = createNativeStackNavigator();
-
+// @ts-ignore
 export function GoogleNavigator({navigation}) {
     return (
         <Stack.Navigator>
-            <Stack.Screen  name="GoogleImages" component={GoogleTabNavigator} options={{ headerShown: true,
-                title:"Google",
+            <Stack.Screen name="GoogleImages" component={GoogleTabNavigator} options={{
+                headerShown: true,
+                title: "Google",
                 headerStyle: {backgroundColor: theme.colors.headerBackground,},
                 headerTintColor: theme.colors.text,
                 headerLeft: () => (
                     <NavigationDrawerBack navigationProps={navigation}/>
                 ),
                 headerRight: () => (
+                    // @ts-ignore
                     <NavigationDrawerRightImportImages navigationProps={navigation} type={ServiceType.Google}/>
                 ),
             }}/>
-            <Stack.Screen  name="GoogleAlbumImages" component={GooglePhotosScreen} options={{ headerShown: true,
-                title:"Google",
+            <Stack.Screen name="GoogleAlbumImages" component={GooglePhotosScreen} options={{
+                headerShown: true,
+                title: "Google",
                 headerStyle: {backgroundColor: theme.colors.headerBackground,},
                 headerTintColor: theme.colors.text,
                 headerRight: () => (
+                    // @ts-ignore
                     <NavigationDrawerRightImportImages navigationProps={navigation} type={ServiceType.Google}/>
                 ),
             }}/>
@@ -38,21 +43,21 @@ export function GoogleNavigator({navigation}) {
     );
 }
 
-
-function GooglePhotosScreen({ navigation, route }) {
-    return photosListView(navigation, route, ServiceType.Google, false)
+// @ts-ignore
+function GooglePhotosScreen({navigation, route}) {
+    return photosListView(navigation, route, ServiceType.Google, false, true)
 };
-
-function GoogleAlbumsScreen({ navigation, route }) {
-    return photosListView(navigation, route, ServiceType.Google, true)
+// @ts-ignore
+function GoogleAlbumsScreen({navigation, route}) {
+    return photosListView(navigation, route, ServiceType.Google, true, true)
 };
 
 const BottomTab = createBottomTabNavigator<RootTabParamList>();
-
-const  GoogleTabNavigator = ({navigation, route}) => {
+// @ts-ignore
+const GoogleTabNavigator = ({navigation, route}) => {
     const colorScheme = useColorScheme();
 
-    function getHeaderTitle(route) {
+    function getHeaderTitle(route: string) {
         switch (route) {
             case 'ImagesScreen':
                 return 'Google Images';
@@ -61,8 +66,8 @@ const  GoogleTabNavigator = ({navigation, route}) => {
         }
     }
 
-    function getTabIcon(route, color){
-        let iconName;
+    function getTabIcon(route: string, color: number | ColorValue | undefined){
+        let iconName = 'image-multiple-outline';
 
         switch (route) {
             case 'ImagesScreen':

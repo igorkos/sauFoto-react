@@ -2,6 +2,7 @@ import {Log} from "../hooks/log";
 import {SaufotoAlbum, saufotoAlbum, saufotoImage, SaufotoImage} from "./SaufotoImage";
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
+import {ServiceTokens} from "./DataServiceConfig";
 
 export namespace GoogleProvider {
 
@@ -71,7 +72,7 @@ export namespace GoogleProvider {
     }
 
     const GOOGLE_MEDIA_ITEMS = 'https://photoslibrary.googleapis.com/v1/mediaItems'
-    function albumImagesRequest(config, root, page) {
+    function albumImagesRequest(config: ServiceTokens, root: string | null, page: string | null) {
         let uri = GOOGLE_MEDIA_ITEMS + ":search"
         return page === null ? {uri: uri, params:{
             method: 'POST',
@@ -99,7 +100,7 @@ export namespace GoogleProvider {
             }}
     }
 
-    function loadImagesRequest(config, page){
+    function loadImagesRequest(config: ServiceTokens, page: string | null){
         let request = GOOGLE_MEDIA_ITEMS + "?pageSize=50"
         if( page !== null ) {
             request = request + '&pageToken=' + page
@@ -114,7 +115,7 @@ export namespace GoogleProvider {
         }}
     }
 
-    export async function loadImages(config, root, page): Promise<LoadImagesResponse> {
+    export async function loadImages(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         let request = root !== null ?  albumImagesRequest(config, root, page):loadImagesRequest(config, page)
         //Log.debug("Load google items:" + JSON.stringify(request))
 
@@ -156,7 +157,7 @@ export namespace GoogleProvider {
 
     const GOOGLE_ALBUMS_ITEMS = 'https://photoslibrary.googleapis.com/v1/albums'
 
-    export async function loadAlbums(config, root, page): Promise<LoadImagesResponse> {
+    export async function loadAlbums(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         let request = GOOGLE_ALBUMS_ITEMS + "?pageSize=50"
         if( page !== null ) {
             request = request + '&pageToken=' + page
@@ -191,11 +192,11 @@ export namespace GoogleProvider {
         })
     }
 
-    export async function getThumbsData(config, path, size: ThumbSize) {
+    export async function getThumbsData(config: ServiceTokens, path: string, size: ThumbSize) {
         return path + '=' + size
     }
 
-    export function albumId(media:SaufotoAlbum) {
+    export function albumId(media:SaufotoAlbum | SaufotoImage) {
         return media.id
     }
 }

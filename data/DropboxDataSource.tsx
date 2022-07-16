@@ -7,11 +7,12 @@ import {DataSourceProvider, LoadImagesResponse} from "./DataSourceProvider";
 import {useEffect, useState} from "react";
 import {ThumbSize} from "../constants/Images";
 import {ServiceType} from "./ServiceType";
+import {ServiceTokens} from "./DataServiceConfig";
 
 const okFileExtensions = Array(".jpg", ".jpeg", ".png", ".gif", ".heic")
 
 export namespace DropboxProvider {
-    async function dropboxInstance(config) {
+    async function dropboxInstance(config: ServiceTokens) {
         //SLog.debug("Dropbox config:" + JSON.stringify(config))
         return new Dropbox({
             accessToken: config.accessToken,
@@ -22,7 +23,7 @@ export namespace DropboxProvider {
         });
     }
 
-    export async function loadImages(config, root, page): Promise<LoadImagesResponse> {
+    export async function loadImages(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         const dbx = await dropboxInstance(config)
         const folder = root ? root:''
         let photosTemp
@@ -34,29 +35,33 @@ export namespace DropboxProvider {
         Log.debug("Received Dropbox entries:" + photosTemp.result.entries.length)
         const parsePath = require('parse-filepath');
         const photos = photosTemp.result.entries.filter((value) => {
-            let file = parsePath(value.path_lower)
-            if (file.ext === '') {
-                return true
-            } else {
-                return okFileExtensions.includes(file.ext)
+            if( value['.tag'] === 'folder' || value['.tag'] === 'file' ) {
+                let file = parsePath(value.path_lower)
+                if (file.ext === '') {
+                    return true
+                } else {
+                    return okFileExtensions.includes(file.ext)
+                }
             }
+            return false
         })
         const objects =  Array.apply(null, Array(photos.length)).map((v, i) => {
             let dbxEntry = photos[i]
-            let object
+            let object: SaufotoAlbum | SaufotoImage
             if (dbxEntry['.tag'] === 'folder') {
                 object = {} as SaufotoAlbum
                 object.id = dbxEntry.id
                 object.type = 'album'
                 object.title = dbxEntry.name
                 object.placeHolderImage = 'folder_blue.png'
-                object.originalUri = dbxEntry.path_lower
+                object.originalUri = dbxEntry.path_lower as string
             } else if (dbxEntry['.tag'] === 'file') {
                 object = saufotoImage()
                 object.id = dbxEntry.id
                 object.title = dbxEntry.name
-                object.originalUri = dbxEntry.path_lower
+                object.originalUri = dbxEntry.path_lower as string
             }
+            // @ts-ignore
             return object;
         })
         const result = {nextPage: photosTemp.result.cursor, items: objects, hasMore: photosTemp.result.has_more }
@@ -67,7 +72,7 @@ export namespace DropboxProvider {
         })
     };
 
-    export async function getThumbsData(config, path, size) {
+    export async function getThumbsData(config: ServiceTokens, path: string, size: string ) {
         const dbx = await dropboxInstance(config)
         const tSize = size.replace('-','')
         const ext = path.split('.').pop();
@@ -82,10 +87,12 @@ export namespace DropboxProvider {
                         path: path
                     },
                     size: {
+                        // @ts-ignore
                         '.tag': tSize
                     }
                 })
                 //Log.debug("Dropbox get thumb data for :" + path)
+                // @ts-ignore
                 const blob = response.result["fileBlob"]
                 const fileReaderInstance = new FileReader();
                 fileReaderInstance.onload = () => {
@@ -104,11 +111,11 @@ export namespace DropboxProvider {
 
     }
 
-    export async function loadAlbums(config, root, page): Promise<LoadImagesResponse> {
+    export async function loadAlbums(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         return loadImages(config, root, page)
     }
 
-    export function albumId(media:SaufotoAlbum) {
+    export function albumId(media:SaufotoAlbum | SaufotoImage) {
         return media.originalUri
     }
 }

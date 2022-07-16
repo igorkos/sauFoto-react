@@ -5,29 +5,29 @@ export interface SaufotoImage extends SaufotoMedia {
      * Edited Image url
      *
      */
-    editedImageUrl?: string
+    editedImageUrl: string  | null
 
     /**
      * Blockstack image url when image not synchronised or null for synchronised
      *
      */
-    originalImageBSFile?: string
+    originalImageBSFile: string  | null
 
     /**
      * Blockstack edited image url when image not synchronised or null for synchronised
      *
      */
-    editedImageBSFile?: string
+    editedImageBSFile: string | null
 
     /**
      * Date when image was added
      */
-    dateAdded?: Date
+    dateAdded: Date | null
 
     /**
      * Image mime type
      */
-    mime_type?: string
+    mime_type: string | null
 }
 
 export function saufotoImage():SaufotoImage {
@@ -60,22 +60,22 @@ export interface SaufotoAlbum extends SaufotoMedia {
     /**
      * Album cover image id
      */
-    coverImage?: string
+    coverImage: string | null
 
     /**
      * Album Subtitle
      */
-    subTitle?: string
+    subTitle: string | null
 
     /**
      * Album images count
      */
-    count: number
+    count: number  | null
 
     /**
      * List of album images
      */
-    images: Array<SaufotoImage>
+    images: Array<SaufotoImage>  | null
 
 }
 
@@ -132,26 +132,23 @@ export interface SaufotoMedia {
      */
     originId: string
 
-    /**
-     * Type Album
-     * @see AssetType.Album
-     */
+
     type: string
 
     /**
      * Album cover image Uri (read only)
      */
-    uri: string
+    uri: string  | null
 
-    originalUri: string
+    originalUri: string | undefined
 
-    placeHolderImage: string
+    placeHolderImage: string | null
 
-    errorImage: string
+    errorImage: string | null
     /**
      *  Album title
      */
-    title?: string
+    title: string | null
 
     /**
      * Asset selected for import
@@ -166,6 +163,6 @@ export interface SaufotoMedia {
     /**
      * Asset creation Date
      */
-    dateTaken?: Date
+    dateTaken: Date | null
 
 }

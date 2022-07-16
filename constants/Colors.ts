@@ -8,6 +8,7 @@ const color = {
     c100: '#D1C4E9',
     c50: '#EDE7F6',
     c10:'#FDF7FE',
+    black:'#000000'
 }
 
 export default {
@@ -18,6 +19,7 @@ export default {
     tabIconDefault: color.c200,
     tabIconSelected: color.c600,
     tabBackground: color.c50,
+    black:color.black
   },
   dark: {
     text: color.c10,
@@ -26,6 +28,7 @@ export default {
     tabIconDefault: color.c600,
     tabIconSelected: color.c200,
     tabBackground: color.c600,
+    black:color.black
   },
   colors: color,
 };

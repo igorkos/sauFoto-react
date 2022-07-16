@@ -1,5 +1,5 @@
 import {Log} from "../hooks/log";
-import {AuthorizeResult} from "react-native-app-auth";
+import {AuthConfiguration, AuthorizeResult} from "react-native-app-auth";
 import {ServiceConfig, ServiceConfigAuthMethods, ServiceTokens} from "./DataServiceConfig";
 import {Preferences} from "./PreferenceStorage";
 import {ServiceType} from "./ServiceType";
@@ -30,17 +30,17 @@ async function isAuthorized(type: ServiceType) {
 export async function authorizeWith(type: ServiceType): Promise<ServiceTokens>{
     if( await isAuthorized(type) === false ) {
         const config = ServiceConfig[type]
-        await ServiceConfigAuthMethods[type].authorize(config).then( (result) => {
+        await ServiceConfigAuthMethods[type].authorize(config as  AuthConfiguration).then( (result) => {
             Log.debug(type +" auth success")
             const tokens = processAuthResponse(type, result)
             Preferences.setItem(type+'Token', JSON.stringify(tokens))
         });
     }
-    return await  Preferences.getItem(type+'Token').then(req => JSON.parse(req))
+    return await  Preferences.getItem(type+'Token').then(req => JSON.parse(req as string))
 }
 
 export async function reset(type: ServiceType) {
-    const token = await Preferences.getItem(type+'Token').then(req => JSON.parse(req))
+    const token = await Preferences.getItem(type+'Token').then(req => JSON.parse(req as string))
     if(token !== null) {
         const config = {
             issuer: token.issuer,

@@ -5,7 +5,8 @@ import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfigu
 import {PermissionStatus} from "expo-modules-core/src/PermissionsInterface";
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
-import {SaufotoAlbum, saufotoImage} from "./SaufotoImage";
+import {SaufotoAlbum, SaufotoImage, saufotoImage} from "./SaufotoImage";
+import {ServiceTokens} from "./DataServiceConfig";
 
 
 export namespace CameraProvider {
@@ -38,9 +39,10 @@ export namespace CameraProvider {
         })
     }
 
-    export async function loadImages(config, root, page): Promise<LoadImagesResponse> {
+    export async function loadImages(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         const album = await MediaLibrary.getAlbumAsync('Camera')
-        const photosTemp = await MediaLibrary.getAssetsAsync({album: album, first:50, after:page})
+        const options = page === null ? {album: album, first:50}:{album: album, first:50, after:page}
+        const photosTemp = await MediaLibrary.getAssetsAsync(options)
         Log.debug("Loading Camera Roll images:" + photosTemp)
         const items =  Array.apply(null, Array(photosTemp.assets.length)).map((v, i) => {
             const object = saufotoImage()
@@ -53,17 +55,17 @@ export namespace CameraProvider {
         return {nextPage: items[items.length - 1].id, items: items, hasMore: !(photosTemp.assets.length < 50)}
     }
 
-    export async function getThumbsData(config, path, size: ThumbSize) {
+    export async function getThumbsData(config: ServiceTokens, path: string, size: ThumbSize) {
         return path
     }
 
-    export async function loadAlbums(config, root, page): Promise<LoadImagesResponse> {
+    export async function loadAlbums(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         return new Promise((resolve, reject) => {
             resolve({nextPage: null, items: [], hasMore:false})
         })
     }
 
-    export function albumId(media:SaufotoAlbum) {
+    export function albumId(media:SaufotoAlbum | SaufotoImage) {
         return media.id
     }
 }

@@ -13,6 +13,7 @@ import {Provider as PaperProvider,} from 'react-native-paper';
 import {Log} from "../hooks/log";
 import RootStackScreen from "../screens/RootStackScreen";
 import {StatusBar} from "react-native";
+import {useMemo, useReducer} from "react";
 
 const initialLoginState = {
     isLoading: true,
@@ -20,17 +21,17 @@ const initialLoginState = {
     userToken: null,
 };
 
-const loginReducer = (prevState, action) => {
+const loginReducer = (prevState: { isLoading: boolean; userName: null; userToken: null; }, action: { type: string; id: string; token: string; }) => {
     Log.debug("loginReducer: action {" + action.type + "} -> {id:" + action.id + ", token:" + action.token + "}")
     switch (action.type) {
         case 'RETRIEVE_TOKEN':
-            if (prevState.isLoading === false) return prevState
+            if (!prevState.isLoading) return prevState
             return {
                 ...prevState,
                 isLoading: false
             };
         case 'LOGIN':
-            if (prevState.isLoading === false && prevState.userName === action.id  && prevState.userToken === action.token) return prevState
+            if (!prevState.isLoading && prevState.userName === action.id  && prevState.userToken === action.token) return prevState
             return {
                 ...prevState,
                 userName: action.id,
@@ -38,7 +39,7 @@ const loginReducer = (prevState, action) => {
                 isLoading: false,
             };
         case 'LOGOUT':
-            if (prevState.isLoading === false && prevState.userName === null  && prevState.userToken === null) return prevState
+            if (!prevState.isLoading && prevState.userName === null  && prevState.userToken === null) return prevState
             return {
                 ...prevState,
                 userName: null,
@@ -46,7 +47,7 @@ const loginReducer = (prevState, action) => {
                 isLoading: false,
             };
         case 'REGISTER':
-            if (prevState.isLoading === false && prevState.userName === action.id  && prevState.userToken === action.token) return prevState
+            if (!prevState.isLoading && prevState.userName === action.id  && prevState.userToken === action.token) return prevState
             return {
                 ...prevState,
                 userName: action.id,
@@ -58,31 +59,21 @@ const loginReducer = (prevState, action) => {
 
 export default function Navigation() {
     Log.debug("Navigation");
-    const [loginState, dispatch] = React.useReducer(
-        loginReducer,
-        initialLoginState,
-    );
+    // @ts-ignore
+    const [loginState, dispatch] = useReducer(loginReducer, initialLoginState,);
 
-    const authContext = React.useMemo(
+    const authContext = useMemo(
         () => ({
-            signIn: async foundUser => {
+            signIn: async (foundUser: string) => {
                 Log.debug("signIn: " + foundUser);
                 // setUserToken('fgkj');
                 // setIsLoading(false);
-                const userToken = foundUser.userToken;
-                const userName = foundUser.username;
+                //const userToken = foundUser.userToken;
+                //const userName = foundUser.username;
 
-                try {
-                    if (userToken !== null) {
-                        await AsyncStorage.setItem('userToken', userToken);
-                    } else {
-                        await AsyncStorage.removeItem('userToken');
-                    }
-                } catch (e) {
-                    Log.error(e);
-                }
                 // console.log('user token: ', userToken);
-                dispatch({type: 'LOGIN', id: userName, token: userToken});
+                // @ts-ignore
+                dispatch({type: 'LOGIN', id: "userName", token: "userToken"});
             },
             signOut: async () => {
                 // setUserToken(null);
@@ -92,6 +83,7 @@ export default function Navigation() {
                 } catch (e) {
                     Log.error(e);
                 }
+                // @ts-ignore
                 dispatch({type: 'LOGOUT'});
             },
             signUp: () => {
@@ -118,12 +110,13 @@ export default function Navigation() {
     }, [loginState]);
     */
 
+
     return (
         <PaperProvider theme={theme}>
             <AuthContext.Provider value={authContext}>
                 <NavigationContainer theme={theme} >
                     {loginState.userToken === null ? (<StatusBar backgroundColor={theme.colors.headerBackground} barStyle={theme.dark ? 'light-content' : 'dark-content'} />) : (<StatusBar hidden={true} />)}
-                    {loginState.userToken === null ? (DrawerNavigator()):(RootStackScreen())}
+                    {loginState.userToken == null ? (DrawerNavigator()):(RootStackScreen())}
                 </NavigationContainer>
             </AuthContext.Provider>
         </PaperProvider>

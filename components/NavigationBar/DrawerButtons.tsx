@@ -1,4 +1,4 @@
-import {View} from "react-native";
+import {TouchableOpacity, View} from "react-native";
 import {HeaderBackButton} from "@react-navigation/elements";
 import {Log} from "../../hooks/log";
 import * as React from "react";
@@ -10,7 +10,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const PubSub = require('pubsub-js');
 
-export const NavigationDrawerBack = (props) => {
+export const NavigationDrawerBack = (props: { navigationProps: { navigate: (arg0: string) => void; }; }) => {
     return (
         <View style={{ height: '100%', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
             <HeaderBackButton
@@ -25,7 +25,7 @@ export const NavigationDrawerBack = (props) => {
 };
 
 
-export const NavigationDrawerRightImportImages = (props) => {
+export const NavigationDrawerRightImportImages = (props: { type: string; }) => {
     const [visible, setVisible] = useState(false);
     const hideMenu = () => {setVisible(false);}
     const showMenu = () => setVisible(true);
@@ -47,6 +47,21 @@ export const NavigationDrawerRightImportImages = (props) => {
                 <MenuItem disabledTextColor={theme.colors.text} onPress={importToGallery}><Text>Add to Gallery</Text> </MenuItem>
                 <MenuItem disabledTextColor={theme.colors.text} onPress={importToAlbum}><Text>Add to Album</Text></MenuItem>
             </SMenu>
+        </View>
+    );
+};
+
+export const NavigationDrawerLeft = (props: { navigationProps: { toggleDrawer: () => void; }; }) => {
+    const toggleDrawer = () => {
+        //Props to open/close the drawer
+        props.navigationProps.toggleDrawer();
+    };
+
+    return (
+        <View style={{ flexDirection: 'row', marginEnd:10}}>
+            <TouchableOpacity onPress={toggleDrawer}>
+                <Icon name={'menu'} color={theme.colors.text} size={25}/>
+            </TouchableOpacity>
         </View>
     );
 };

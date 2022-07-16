@@ -39,7 +39,7 @@ export const ServiceConfig = {
         clientSecret: 'saufoto.com',
         scopes: []
     },
-    Test: {
+    Saufoto: {
         issuer: 'test',
         clientId: 'saufoto.com',
         redirectUrl: null,
@@ -61,7 +61,7 @@ export const ServiceConfigAuthMethods = {
         authorize: CameraProvider.authorize,
         revoke: CameraProvider.revoke,
     },
-    Test: {
+    Saufoto: {
         authorize: TestProvider.authorize,
         revoke: TestProvider.revoke,
     }

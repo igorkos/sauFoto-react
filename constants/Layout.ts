@@ -42,7 +42,7 @@ export const FlatListItemSizes = {
       layout:screenWidth/3 - 2
     }
   },
-  Test:{
+  Saufoto:{
     album:{
       width:screenWidth/2 - 6,
       height:screenWidth/2 - 6,

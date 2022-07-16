@@ -6,7 +6,7 @@ import {ServiceType} from "../../data/ServiceType";
 import {photosListView} from "./PhotosCollectionList";
 
 const Stack = createNativeStackNavigator();
-
+// @ts-ignore
 export function DropboxNavigator({navigation}) {
     return (
         <Stack.Navigator>
@@ -19,6 +19,7 @@ export function DropboxNavigator({navigation}) {
                     <NavigationDrawerBack navigationProps={navigation}/>
                 ),
                 headerRight: () => (
+                    // @ts-ignore
                     <NavigationDrawerRightImportImages navigationProps={navigation} type={ServiceType.Dropbox}/>
                 ),
             }}/>
@@ -31,15 +32,16 @@ export function DropboxNavigator({navigation}) {
                     <NavigationDrawerBack navigationProps={navigation}/>
                 ),
                 headerRight: () => (
+                    // @ts-ignore
                     <NavigationDrawerRightImportImages navigationProps={navigation} type={ServiceType.Dropbox}/>
                 ),
             }}/>
         </Stack.Navigator>
     );
 }
-
+// @ts-ignore
 function DropboxScreen({ navigation, route }) {
-    return photosListView(navigation, route, ServiceType.Dropbox, true)
+    return photosListView(navigation, route, ServiceType.Dropbox, true, true)
 }
 
 

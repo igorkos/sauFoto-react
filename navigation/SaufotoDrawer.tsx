@@ -9,8 +9,9 @@ import {Caption, Title, Avatar, Drawer} from "react-native-paper";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {AuthContext} from "../components/context";
 
-
+// @ts-ignore
 const SaufotoDrawer = (props) => {
+    // @ts-ignore
     const {signOut} = React.useContext(AuthContext);
     return (
         <View style={{flex: 1}}>

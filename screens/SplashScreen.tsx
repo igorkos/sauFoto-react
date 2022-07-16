@@ -18,8 +18,9 @@ import {Log} from "../hooks/log";
 import {useEffect} from "react";
 import {screenWidth} from "../constants/Layout";
 
-
+// @ts-ignore
 export function SplashScreen({navigation}){
+  // @ts-ignore
   const {signIn} = React.useContext(AuthContext);
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export function SplashScreen({navigation}){
   return (
     <View style={styles.container}>
       <ImageBackground source={require('../assets/images/bright_rainbow_swirl_background.png')} style={{flex: 1}}>
-        <View style={{flex:2, justifyContent: 'center', alignItems: 'center',}}>
+        <View style={{flex:3, justifyContent: 'center', alignItems: 'center',}}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' ,  alignItems: 'center',  marginRight:10}}>
             <Text style={styles.title}>sau</Text>
             <Animatable.Text style={styles.title1}animation="pulse" easing="ease-in-out-circ" iterationCount="infinite">f</Animatable.Text>
@@ -53,7 +54,7 @@ export function SplashScreen({navigation}){
               resizeMode={FastImage.resizeMode.contain}
           />
         </View>
-        <View style={{flex: 3, justifyContent: 'flex-end', alignItems: 'center',}}>
+        <View style={{flex: 4, justifyContent: 'flex-end', alignItems: 'center',}}>
           <TouchableOpacity style={styles.linearGradient} onPressOut={() => { signIn(users[1])}}>
             <LinearGradient colors={['#4c669f', '#3b5998', '#192f6a']}  style={styles.linearGradient}>
               <Text style={styles.text}>Get Started</Text>

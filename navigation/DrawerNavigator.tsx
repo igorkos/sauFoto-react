@@ -10,14 +10,15 @@ import {SplashScreen} from "../screens/SplashScreen";
 import {Log} from "../hooks/log";
 import {SaufotoAlbum, SaufotoMedia} from "../data/SaufotoImage";
 import {GoogleNavigator} from "../screens/drawer/GooglePhotos";
+import {useMemo} from "react";
 
 const Drawer = createDrawerNavigator();
 
-export const MediaContext = React.createContext(null);
+export const MediaContext = React.createContext< {importGallery: (items: [SaufotoMedia]) => Promise<void>, importTo: (items: [SaufotoMedia], album?: SaufotoAlbum) => Promise<void>} | null>(null);
 
 export function DrawerNavigator() {
 
-    const mediaContext = React.useMemo(
+    const mediaContext = useMemo(
         () => ({
             importGallery: async (items:[SaufotoMedia]) => {
                 Log.debug("Import to Gallery", JSON.stringify(items))

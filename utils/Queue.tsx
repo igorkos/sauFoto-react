@@ -1,11 +1,11 @@
 export class Queue {
     private elements: any[];
-    constructor(...elements) {
+    constructor(...elements: any) {
         // Initializing the queue with given arguments
         this.elements = [...elements];
     }
     // Proxying the push/shift methods
-    push(...args) {
+    push(...args: any[]) {
         return this.elements.push(...args);
     }
 

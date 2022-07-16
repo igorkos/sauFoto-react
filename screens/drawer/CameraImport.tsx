@@ -7,6 +7,7 @@ import {ServiceType} from "../../data/ServiceType";
 
 const Stack = createNativeStackNavigator();
 
+// @ts-ignore
 export function CameraNavigator({navigation}) {
     return (
         <Stack.Navigator>
@@ -17,13 +18,14 @@ export function CameraNavigator({navigation}) {
                     <NavigationDrawerBack navigationProps={navigation}/>
                 ),
                 headerRight: () => (
+                    // @ts-ignore
                     <NavigationDrawerRightImportImages navigationProps={navigation} type={ServiceType.Camera}/>
                 ),
             }}/>
         </Stack.Navigator>
     );
 }
-
+// @ts-ignore
 function CameraScreen({ navigation, route }) {
-    return photosListView(navigation, route, ServiceType.Camera, false)
+    return photosListView(navigation, route, ServiceType.Camera, false, true)
 }

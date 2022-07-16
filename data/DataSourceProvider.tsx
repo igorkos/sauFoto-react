@@ -1,9 +1,8 @@
 import {authorizeWith} from "./AuthorizationProvicer";
-import {SaufotoAlbum, SaufotoMedia} from "./SaufotoImage";
+import {SaufotoAlbum, SaufotoImage} from "./SaufotoImage";
 import {DropboxProvider} from "./DropboxDataSource";
 import {GoogleProvider} from "./GoogleDataSource";
 import {ThumbSize} from "../constants/Images";
-import {Queue} from "../utils/Queue";
 import {TestProvider} from "./ImageDataSource";
 import {CameraProvider} from "./CameraRollDataSource";
 import {ServiceType} from "./ServiceType";
@@ -27,7 +26,7 @@ export const DataProviders = {
         loadAlbums: CameraProvider.loadAlbums,
         albumId: CameraProvider.albumId,
     },
-    Test: {
+    Saufoto: {
         loadImages: TestProvider.loadImages,
         getThumbsData: TestProvider.getThumbsData,
         loadAlbums: TestProvider.loadAlbums,
@@ -36,19 +35,19 @@ export const DataProviders = {
 }
 
 export interface LoadImagesResponse {
-    items: [],
-    nextPage: string,
+    items: Array<SaufotoImage|SaufotoAlbum>,
+    nextPage: string | null,
     hasMore:boolean
 }
 
 export namespace DataSourceProvider {
 
-    export async function loadImages(type: ServiceType, root, page): Promise<LoadImagesResponse> {
+    export async function loadImages(type: ServiceType, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         const config = await authorizeWith(type)
         return  await DataProviders[type].loadImages(config, root, page)
     }
 
-    export async function loadAlbums(type: ServiceType, root, page): Promise<LoadImagesResponse> {
+    export async function loadAlbums(type: ServiceType, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         const config = await authorizeWith(type)
         return  await DataProviders[type].loadAlbums(config, root, page)
     }
@@ -56,7 +55,7 @@ export namespace DataSourceProvider {
         const config = await authorizeWith(type)
         return await DataProviders[type].getThumbsData(config, path, size)
     }
-    export function albumId(type: ServiceType, media:SaufotoAlbum) {
+    export function albumId(type: ServiceType, media:SaufotoAlbum | SaufotoImage) {
         return DataProviders[type].albumId(media)
     }
 }

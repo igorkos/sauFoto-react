@@ -7,7 +7,7 @@ const Placeholders = {
     imageError: require('../assets/images/error_load_image.png'),
 };
 
-export function getPlaceFolder(image) {
+export function getPlaceFolder(image: string| null) {
     switch (image) {
         case 'folder_blue.png' :{
             return Placeholders.folder
@@ -22,6 +22,7 @@ export function getPlaceFolder(image) {
             return Placeholders.imageError
         }
     }
+    return Placeholders.imageError
 }
 
 

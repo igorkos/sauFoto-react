@@ -1,34 +1,48 @@
 import * as React from "react";
-import { Platform, StyleSheet, StatusBar } from 'react-native';
+import {theme} from "../constants/themes";
+import {
+    NavigationDrawerBack,
+    NavigationDrawerLeft,
+    NavigationDrawerRightImportImages
+} from "../components/NavigationBar/DrawerButtons";
+import {ServiceType} from "../data/ServiceType";
+import {createNativeStackNavigator} from "@react-navigation/native-stack";
+import {photosListView} from "./drawer/PhotosCollectionList";
 
-import EditScreenInfo from '../components/EditScreenInfo';
-import { Text, View } from '../components/Themed';
+const Stack = createNativeStackNavigator();
 
-export default function AlbumsScreen() {
+// @ts-ignore
+export function GalleryAlbumsNavigator({navigation}) {
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Modal</Text>
-            <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-            <EditScreenInfo path="/screens/ModalScreen.tsx" />
-
-            {/* Use a light status bar on iOS to account for the black space above the modal */}
-        </View>
+        <Stack.Navigator>
+            <Stack.Screen name="SaufotoAlbums" component={AlbumsScreen} options={{
+                headerShown: true,
+                title: "Albums",
+                headerStyle: {backgroundColor: theme.colors.headerBackground,},
+                headerTintColor: theme.colors.text,
+                headerLeft: () => (
+                    <NavigationDrawerLeft navigationProps={navigation} />
+                ),
+            }}/>
+            <Stack.Screen name="SaufotoAlbumImages" component={AlbumImagesScreen} options={{
+                headerShown: true,
+                title: "",
+                headerStyle: {backgroundColor: theme.colors.headerBackground,},
+                headerTintColor: theme.colors.text,
+                headerLeft: () => (
+                    <NavigationDrawerBack navigationProps={navigation}/>
+                ),
+            }}/>
+        </Stack.Navigator>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    separator: {
-        marginVertical: 30,
-        height: 1,
-        width: '80%',
-    },
-});
+// @ts-ignore
+function AlbumsScreen({ navigation, route }) {
+    return photosListView(navigation, route, ServiceType.Saufoto, true, false)
+}
+
+// @ts-ignore
+function AlbumImagesScreen({ navigation, route }) {
+    return photosListView(navigation, route, ServiceType.Saufoto, false, false)
+}
