@@ -1,50 +1,53 @@
 import {Log} from "../../hooks/log";
-import {
-    BackHandler,
-    FlatList,
-    Image,
-    Platform,
-    SafeAreaView, StatusBar,
-    StyleSheet, Switch,
-    TouchableOpacity
-} from "react-native";
-import {getPlaceFolder, ThumbSize} from "../../constants/Images";
-import { View, ProgressCircle, Text} from "../../components/Themed";
+import {BackHandler, FlatList, Platform, SafeAreaView, StyleSheet, Switch, TouchableOpacity} from "react-native";
+import {getPlaceFolder, Placeholders, ThumbSize, thumbSize} from "../../constants/Images";
+import {ProgressCircle, Text, View} from "../../components/Themed";
 import * as React from "react";
+import {Component, PureComponent, useCallback, useEffect, useState} from "react";
 import {theme} from "../../constants/themes";
-import {useEffect, useState} from "react";
 import {DataSourceProvider, LoadImagesResponse} from "../../data/DataSourceProvider";
 import FastImage from 'react-native-fast-image';
-import {SaufotoAlbum, SaufotoImage, SaufotoMedia} from "../../data/SaufotoImage";
-import {MediaContext} from "../../navigation/DrawerNavigator";
+import SaufotoContext, {
+    SaufotoAlbum,
+    SaufotoImage,
+    SaufotoObjectType,
+    SaufotoSyncAction,
+    ServiceImportCamera,
+    ServiceImportEntry,
+    ServiceImportGoogle
+} from "../../data/SaufotoImage";
 // @ts-ignore
 import InViewPort from "@coffeebeanslabs/react-native-inviewport"
 import {ServiceType} from "../../data/ServiceType";
-import {FlatListItemSizes, screenHeight, screenWidth} from "../../constants/Layout";
-import Carousel from "react-native-snap-carousel";
-import PhotoView from 'react-native-photo-view';
-import Colors from "../../constants/Colors";
-import {HeaderBackButton} from "@react-navigation/elements";
+import {FlatListItemSizes} from "../../constants/Layout";
+import {authorizeWith} from "../../data/AuthorizationProvicer";
+import { SpeedyList, SpeedyListItemMeta, SpeedyListItemRenderer } from "react-native-speedy-list"
 
+const {useRealm, useQuery} = SaufotoContext;
 const PubSub = require('pubsub-js');
 
-export const photosListView = (navigation: { push: (arg0: string, arg1: { albumId: string|undefined; first?: any; }) => void; goBack: () => void; }, route: { params: { albumId: string; first: number; } | undefined; }, type: ServiceType, albums: boolean, isImport: boolean, isPreview: boolean = false) => {
-    // @ts-ignore
-    const {importGallery} = React.useContext(MediaContext);
-    // @ts-ignore
-    const {importTo} = React.useContext(MediaContext);
-
-    const [dataSource, setDataSource] = useState<Array<SaufotoMedia>>([]);
+export const photosListView = (navigation: { push: (arg0: string, arg1: { albumId: string|null; first?: any; }) => void; goBack: () => void; }, route: { params: { albumId: string; first: number; } | undefined; }, type: ServiceType, albums: boolean, isImport: boolean, isPreview: boolean = false) => {
     const [currentPage, setCurrentPage] = useState<string | null>( null);
     const [nextPage, setNextPage] = useState(0);
     const [isLoading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [albumsPreview, setAlbumsPreview] = useState(true);
     const [events, setEvent] = useState('');
+    const [error, setError] = useState<any | null>(null);
     const [visible, setVisible] = useState(true);
     const [token, setToken] = useState<string | null>(null);
     const [root] = useState<string | null>(route.params !== undefined ? (route.params.albumId === undefined ? null : route.params.albumId) : null);
-    const [first] = useState<number>(route.params !== undefined ? (route.params.first === undefined ? 0 : route.params.first) : 0);
+    const [objects, setObjects] = useState()
+    const [render, setForceRender] = useState(false)
+    const realm = useRealm()
+
+
+
+        //useQuery('ServiceImportGoogle')
+ //   const sortedCollection = useMemo(() => {
+ //       return objects.filtered("parentId = '" + parent + "' AND type = '" + (albums ? SaufotoObjectType.Album:SaufotoObjectType.Image) + "'")
+ //   }, [objects]);
+    //setObjects(sortedCollection)
 
     const menuSubscriber = (msg: any, data: React.SetStateAction<string>) => {
         setEvent(data)
@@ -60,12 +63,6 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     const updateDataSource = (images?: LoadImagesResponse) => {
         if( images !== undefined ) {
             Log.debug(type + " get images page: " + nextPage);
-            if (currentPage == null) {
-                setDataSource(images.items)
-            } else {
-                const items = dataSource.concat(images.items)
-                setDataSource(items)
-            }
             setCurrentPage(images.nextPage)
             setLoading(false)
             setHasMore(images.hasMore)
@@ -75,37 +72,41 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
         }
     }
 
-    const imageUri = async (source: string) => {
-        return await DataSourceProvider.getThumbsData(type, source, ThumbSize.THUMB_256)
-    }
-
     const fetchData = async () => {
-        if(visible) {
-            setLoading(true)
-            if (albums) {
-                return await DataSourceProvider.loadAlbums(type, root, currentPage)
-            } else {
-                return await DataSourceProvider.loadImages(type, root, currentPage)
-            }
-        }
+       /* if(visible && type != ServiceType.Saufoto) {
+             setLoading(true)
+             if (albums) {
+                 return await DataSourceProvider.loadAlbums(realm, type, root, currentPage)
+             } else {
+                 return await DataSourceProvider.loadImages(realm, type, root, currentPage)
+             }
+        }*/
     }
 
     useEffect(() => {
         switch (events) {
             case 'importToGallery' : {
-                const toImport = dataSource.filter((value) => {
+              /*  const toImport = dataSource.filter((value) => {
                     return value.selected
                 })
-                Log.debug("PhotosListView -> importToGallery selected" + JSON.stringify(toImport))
-                importGallery(toImport)
+                Log.debug("PhotosListView -> importToGallery selected" + toImport)
+                realm.write(() => {
+                    toImport.forEach((item) =>{
+                        const type = item.type === 'image' ? 'SaufotoImage':'SaufotoAlbum'
+                        item.selected = false
+                        item.update = 'pending'
+                        realm.create(type,item)
+                    })
+                })*/
                 break;
             }
             case 'importToAlbum': {
+                /*
                 const toImport = dataSource.filter((value) => {
                     return value.selected
                 })
                 Log.debug("PhotosListView -> importToAlbum selected" + JSON.stringify(toImport))
-                importTo(toImport, null)
+                 */
                 break;
             }
         }
@@ -113,7 +114,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     },[events])
 
     useEffect(() => {
-        Log.debug(type + " nextPage event page: " + nextPage)
+        Log.debug(type + " nextPage event nextPage= " + nextPage + " hasMore =" + hasMore + " isLoading = " + isLoading )
         if(hasMore && !isLoading && nextPage > 0) {
             fetchData().then((response) => {
                 updateDataSource(response)
@@ -121,34 +122,53 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
                 Log.error("Loading " + type + "images error: " + err)
             });
         }
-    }, [nextPage]);
+    }, [nextPage,isLoading]);
 
-    useEffect(() => {
-        Log.debug(type + " isLoading event page: " + nextPage + " isLoading: " + isLoading)
-        if(!isLoading && nextPage > 0 ) {
-            fetchData().then((response) => {
-                updateDataSource(response)
-            }).catch((err) => {
-                Log.error("Loading " + type + "images error: " + err)
-            });
+    const initData = useCallback(() => {
+        switch (type) {
+            case ServiceType.Google:{
+                const parent = root === null ? '':root
+                const objects = realm.objects('ServiceImportGoogle') //.filtered("parentId = '" + parent + "' AND type = '" + (albums ? SaufotoObjectType.Album:SaufotoObjectType.Image) + "'")
+                setObjects(objects)
+                break;
+            }
+            case ServiceType.Dropbox: {
+                const parent = root === null ? '':root
+                const objects = realm.objects('ServiceImportDropbox').filtered("parentId = '" + parent + "'")
+                setObjects(objects)
+                break;
+            }
+            case ServiceType.Camera: {
+                const objects = realm.objects('ServiceImportCamera')
+                setObjects(objects)
+                break;
+            }
+            case ServiceType.Saufoto: {
+                //objects = albums? useQuery(SaufotoAlbum):useQuery(SaufotoImage);
+                break;
+            }
+            default: {
+                //objects = null
+            }
         }
-    }, [isLoading]);
+    }, [realm])
 
     useEffect(() => {
+        initData()
         Log.debug(type + " global event page: " + nextPage + " isLoading: " + isLoading)
         fetchData().then((response) => {
-           // Log.debug("Load " + type + "images :" + JSON.stringify(images))
+            // Log.debug("Load " + type + "images :" + JSON.stringify(images))
             updateDataSource(response)
         }).catch((err) => {
             Log.error("Loading " + type + "images error: " + err)
-        });
+        })
     }, []);
 
     const onItemSelected = (item: SaufotoAlbum | SaufotoImage, index: number) => {
         if(!isImport) {
-            navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item), first:index})
+            navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(realm, type, item), first:index})
         } else if(albums) {
-            navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item)})
+            navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(realm, type, item)})
         } else {
             item.selected = !item.selected
         }
@@ -167,8 +187,8 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
             const contentOffset = event.contentOffset.y
             const screenHeight = event.layoutMeasurement.height
             const pagesToLoad = Math.ceil((contentHeight - contentOffset)/screenHeight)
-            Log.debug("onMomentumScrollBegin event pages to load: " + pagesToLoad)
             if( pagesToLoad < 8 && (pagesToLoad - nextPage) > 0) {
+                Log.debug("onMomentumScrollBegin event pages to load: " + (pagesToLoad - nextPage))
                 setNextPage(pagesToLoad - nextPage )
             }
         }
@@ -192,69 +212,73 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
         }
     }
 
+    const onError = (err: any) => {
+        if( error ===  null ) {
+            const auth = async () => {
+                await authorizeWith(type)
+            }
+            if (err === 'Not Authorized') {
+                setError(err)
+                auth().then((response) => {
+                    // Log.debug("Load " + type + "images :" + JSON.stringify(images))
+                    setError(null)
+                    setForceRender(!render)
+                }).catch((err) => {
+                    Log.error("authorize " + type + "error: " + err)
+                })
+            }
+        }
+    }
+    // @ts-ignore
+    const renderItem = ({item, index}) => {
+        return (// @ts-ignore
+            <ImageSource  realm={realm} item={item} mode={albumsPreview} onSelected={onItemSelected} dataProvider={type} index={index} onError={onError}/>
+        )}
+
     const height = albums ? FlatListItemSizes[type].album.layout : FlatListItemSizes[type].image.layout
-    return !isPreview ? (
-        <InViewPort onChange={(isVisible: boolean | ((prevState: boolean) => boolean)) => checkVisible(isVisible)} style={styles.container}>
+
+    const itemKey = useCallback(
+        ({ item, index }: SpeedyListItemMeta<ServiceImportGoogle>) => {
+            return item.originId;
+        },
+        []
+    )
+
+    return (
             <SafeAreaView style={styles.container}>
-                <FlatList
-                    data={dataSource}
-                    extraData={hasMore}
-                    getItemLayout={(data, index) => (
-                        {length: height, offset: height * index, index}
-                    )}
-                    renderItem={({item, index}) => (
-                        <ImageSource item={item} getThumbUri={imageUri} mode={albumsPreview} onSelected={onItemSelected} dataProvider={type} isImport={isImport} index={index}/>
-                    )}
-                    numColumns={(albums ? 2 : 3)}
-                    initialNumToRender={21}
-                    onEndReachedThreshold={0.5}
-                    keyExtractor={(item, index) => index.toString()}
-                    onMomentumScrollBegin={onMomentumScrollBegin}
-                    onEndReached={onEndReached}
-                    ListFooterComponent={footer(hasMore)}
-                />
-                <AlbumsPreview albums={albums} callback={toggleSwitch} state={albumsPreview} isImport={isImport}/>
+                <SpeedyList<ServiceImportGoogle>
+                    items={objects}
+                    itemRenderer={renderItem}
+                    itemHeight={height}
+                    itemKey={itemKey}>
+                    <AlbumsPreview albums={albums} callback={toggleSwitch} state={albumsPreview} isImport={isImport}/>
+                </SpeedyList>
             </SafeAreaView>
-        </InViewPort>
-    ):(
-        <View style={{ flex: 1, backgroundColor:Colors.light.black, alignItems: 'center'}} >
-            <StatusBar hidden={true} />
-            <InViewPort onChange={(isVisible: boolean | ((prevState: boolean) => boolean)) => checkVisible(isVisible)} style={{ flex: 1, backgroundColor:Colors.light.black, alignItems: 'flex-start'}}>
-                <Carousel
-                    slideStyle={{ width: screenWidth }}
-                    layout='default'
-                    data={dataSource}
-                    firstItem={first}
-                    initialScrollIndex={first}
-                    lockScrollWhileSnapping={true}
-                    getItemLayout={(data, index) => (
-                        {length: screenWidth, offset: screenWidth * index, index}
-                    )}
-                    sliderWidth={screenWidth}
-                    itemWidth={screenWidth}
-                    itemHeight={screenHeight}
-                    renderItem={({ item, index }) => (
-                        <PhotoView
-                            source={{uri:item.originalUri}}
-                            minimumZoomScale={1}
-                            maximumZoomScale={10}
-                            androidScaleType="fitCenter"
-                            onLoad={() => Log.debug("Image loaded!" + index)}
-                            style={{flex: 1}} />
-                    )}
-                />
-                <HeaderBackButton style={{ zIndex: 5, width: 20, height:20}}
-                                  label={'Back'}
-                                  onPress={() => {
-                                      Log.debug('Header left press')
-                                      navigation.goBack()
-                                  }}
-                />
-            </InViewPort>
-        </View>
     )
 }
 
+/*
+<FlatList
+                    // @ts-ignore
+                    data={objects}
+                    extraData={render}
+                    getItemLayout={(data, index) => (
+                        {length: height, offset: height * index, index}
+                    )}
+                    renderItem={renderItem}
+                    numColumns={(albums ? 2 : 3)}
+                    initialNumToRender={21}
+                    onEndReachedThreshold={0.5}
+                    keyExtractor={(item, index) => item._id.toString()}
+                    onMomentumScrollBegin={onMomentumScrollBegin}
+                    onEndReached={onEndReached}
+                    ListFooterComponent={footer(hasMore)}
+                    windowSize={60}
+                    removeClippedSubviews={false}
+                />
+ <InViewPort onChange={(isVisible: boolean | ((prevState: boolean) => boolean)) => checkVisible(isVisible)} style={styles.container}>
+ </InViewPort>
+ */
 const AlbumsPreview = (props: { state: boolean | undefined; albums: any; isImport: any; callback: (arg0: boolean) => void; }) => {
     const bFont =  props.state ? 'normal':'bold'
     const sFont =  props.state ? 'bold':'normal'
@@ -289,23 +313,147 @@ const footer = (hasMore: boolean) => {
     }
 };
 
-const ImageSource = (props: { item: SaufotoAlbum | SaufotoImage | SaufotoMedia; isImport: any; getThumbUri: (arg0: any) => Promise<any>; mode: any; onSelected: (arg0: SaufotoAlbum | SaufotoImage, arg1: number) => void; index: any; dataProvider: ServiceType; }) => {
-    const [uri, setUri] = useState(null);
+interface ImageSourceState {
+    source: {uri: string;} | any,
+    type: SaufotoObjectType,
+    selected: boolean,
+    error: boolean,
+}
+
+interface ImageSourceProps {
+     realm: Realm;
+     item: ServiceImportEntry;
+     mode: any;
+     onSelected: (entry: ServiceImportEntry, index: number) => void;
+     onError: (error: any) => void;
+     index: any;
+     dataProvider: ServiceType;
+}
+
+
+class ImageSource extends PureComponent<ImageSourceProps, ImageSourceState> {
+
+    size: ThumbSize = ThumbSize.THUMB_128;
+    imageStyle: any
+
+    constructor(props: ImageSourceProps) {
+        super(props);
+        const itemType: SaufotoObjectType = this.props.item.type as SaufotoObjectType
+        Log.error("Constructor!!")
+        this.size = thumbSize(itemType === SaufotoObjectType.Image ? FlatListItemSizes[this.props.dataProvider].image.width: FlatListItemSizes[this.props.dataProvider].album.width)
+        this.imageStyle = itemType === 'album' ? {...styles.albumStyle,  height: FlatListItemSizes[this.props.dataProvider].album.height, width: FlatListItemSizes[this.props.dataProvider].album.width,}:
+            {...styles.imageStyle,  height: FlatListItemSizes[this.props.dataProvider].image.height, width: FlatListItemSizes[this.props.dataProvider].image.width,}
+
+        this.state = {
+            source: {uri:null},
+            type: itemType,
+            selected: this.props.item.selected,
+            error: false,
+        }
+    }
+
+    /*shouldComponentUpdate(nextProps: ImageSourceProps, nextState : ImageSourceState): boolean {
+        if(this.state.error !== nextState.error) {
+            return true
+        }
+        return false
+    }*/
+
+    componentDidMount() {
+        if( this.state.source.uri === null) {
+            const fetchThumb = async () => {
+                await DataSourceProvider.getThumbsData(this.props.realm, this.props.dataProvider, this.props.item, this.size).then((src) => {
+                    this.setState({source: {uri: src}});
+                })
+            }
+
+           /* if (this.props.item.originalUri !== null) {
+                fetchThumb().catch((err) => {
+                    Log.error("Loading Thumb error:" + err)
+                    this.setState({ error: true });
+                    this.setState( { source: Placeholders.imageError});
+                    this.props.onError(err)
+                });
+            }*/
+        }
+    }
+
+    onItemSelected(){
+        const media = this.props.item
+        if(!this.state.error) {
+            if (!this.props.mode) {
+                this.props.onSelected(media, this.props.index)
+            } else {
+                media.selected = !media.selected
+                this.setState({ selected: media.selected });
+            }
+        }
+    };
+
+    selectShow(){
+        const media = this.props.item
+        if(media.syncOp === SaufotoSyncAction.Pending) {
+            return getPlaceFolder('sync_white.png')
+        }
+        if( this.state.selected ) {
+            return getPlaceFolder('asset_select_icon.png')
+        }
+        return null
+    }
+
+    CaptionView(props: {title:string | null | undefined, count: number, type:SaufotoObjectType }) {
+        return props.type === SaufotoObjectType.Album ? (
+            <View style={{height:40, marginTop:5, marginBottom:2}}>
+                <Text style={styles.caption}>{props.title}</Text>
+                <Text style={styles.caption}>{props.count}</Text>
+            </View>
+        ):(<View style={{flex:1,height:0}}/>)
+    }
+
+    render() {
+        const media = this.props.item
+        Log.debug("Render image  '" + this.state.source + "'")
+        return (
+            <TouchableOpacity
+                key={media.originId}
+                style={{flex: 1}}
+                onPress={() => {this.onItemSelected();}}>
+                <FastImage
+                    style={this.imageStyle}
+                    source={this.state.source}
+                    onError={ () => {
+                        this.setState({ error: true });
+                        this.setState( { source: Placeholders.imageError});
+                    }}>
+                </FastImage>
+                <this.CaptionView title={media.title} count={"count" in media ? media.count :0} type={this.state.type}/>
+            </TouchableOpacity>
+        )
+    }
+}
+
+/*
+<CaptionView title={media.title} count={"count" in media ? media.count :null}/>
+  <Image style={styles.selectStyle} source={selectShow()}/>
+const ImageSource = (props: { realm: Realm;  item: ServiceImportEntry;  mode: any; onSelected: (arg0: ServiceImportEntry, arg1: number) => void; index: any; dataProvider: ServiceType; }) => {
     const [type] = useState(props.item.type);
-    const [isImport] = useState(props.isImport);
+
+    const size = thumbSize(type === SaufotoObjectType.Image ? FlatListItemSizes[props.dataProvider].image.width: FlatListItemSizes[props.dataProvider].album.width)
+    const media = props.item
+    const [uri, setUri] = useState(media.getThumbUri(size));
     const [selected, setSelected] = useState(props.item.selected);
     const [error, setError] = useState(false);
-    const media = type === 'album' ? (props.item as SaufotoAlbum):(props.item as SaufotoImage)
+    const realm = props.realm
 
-    const fetchThumb = async (source: string | undefined) => {
-        await props.getThumbUri(source).then( (src) => {
+    const fetchThumb = async () => {
+      /*  await DataSourceProvider.getThumbsData(realm,props.dataProvider,media,size).then( (src) => {
             setUri(src)
         })
     }
 
     useEffect(() => {
         if( media.originalUri !== null) {
-            fetchThumb(media.originalUri).catch((err) => {
+            fetchThumb().catch((err) => {
                 Log.error("Loading Thumb error:" + err)
             });
         }
@@ -313,7 +461,7 @@ const ImageSource = (props: { item: SaufotoAlbum | SaufotoImage | SaufotoMedia; 
 
     const onItemSelected = () => {
         if(!error) {
-            if (!props.mode || !isImport) {
+            if (!props.mode) {
                 props.onSelected(media, props.index)
             } else {
                 media.selected = !media.selected
@@ -323,6 +471,9 @@ const ImageSource = (props: { item: SaufotoAlbum | SaufotoImage | SaufotoMedia; 
     };
 
     const selectShow = () => {
+        if(media.syncOp === SaufotoSyncAction.Pending) {
+            return getPlaceFolder('sync_white.png')
+        }
         if( selected ) {
             return getPlaceFolder('asset_select_icon.png')
         }
@@ -330,7 +481,7 @@ const ImageSource = (props: { item: SaufotoAlbum | SaufotoImage | SaufotoMedia; 
     }
 
     const CaptionView = (captionProps: { title: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactFragment | React.ReactPortal | null | undefined; count: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | React.ReactFragment | React.ReactPortal | null | undefined; }) => {
-        return type === 'album' ? (
+        return type === SaufotoObjectType.Album ? (
             <View style={{height:40, marginTop:5, marginBottom:2}}>
                 <Text style={styles.caption}>{captionProps.title}</Text>
                 <Text style={styles.caption}>{captionProps.count}</Text>
@@ -341,11 +492,12 @@ const ImageSource = (props: { item: SaufotoAlbum | SaufotoImage | SaufotoMedia; 
     const imageStyle = type === 'album' ? {...styles.albumStyle,  height: FlatListItemSizes[props.dataProvider].album.height, width: FlatListItemSizes[props.dataProvider].album.width,}:
         {...styles.imageStyle,  height: FlatListItemSizes[props.dataProvider].image.height, width: FlatListItemSizes[props.dataProvider].image.width,}
     //Log.debug("Render image  '" + uri + "'")
-    const image = error ?  media.errorImage:media.placeHolderImage
-    const source = uri === null ? getPlaceFolder(image):{uri:uri, priority: FastImage.priority.low,}
+
+    const image = error ? (Placeholders.imageError) : Placeholders.image
+    const source = uri === null ? image:{uri:uri, priority: FastImage.priority.low,}
     return (
         <TouchableOpacity
-            key={media.id}
+            key={media.originId}
             style={{flex: 1}}
             onPress={() => {
                 onItemSelected();
@@ -364,7 +516,7 @@ const ImageSource = (props: { item: SaufotoAlbum | SaufotoImage | SaufotoMedia; 
         </TouchableOpacity>
     )
 }
-
+*/
 const styles = StyleSheet.create({
     container: {
         flex: 1,

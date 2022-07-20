@@ -12,12 +12,15 @@ import {SaufotoAlbum, SaufotoMedia} from "../data/SaufotoImage";
 import {GoogleNavigator} from "../screens/drawer/GooglePhotos";
 import {useMemo} from "react";
 
+import SaufotoContext from '../data/SaufotoImage';
+const {useRealm} = SaufotoContext;
+
 const Drawer = createDrawerNavigator();
 
 export const MediaContext = React.createContext< {importGallery: (items: [SaufotoMedia]) => Promise<void>, importTo: (items: [SaufotoMedia], album?: SaufotoAlbum) => Promise<void>} | null>(null);
 
 export function DrawerNavigator() {
-
+    const realm = useRealm();
     const mediaContext = useMemo(
         () => ({
             importGallery: async (items:[SaufotoMedia]) => {

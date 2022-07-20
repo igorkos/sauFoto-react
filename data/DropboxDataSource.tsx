@@ -1,15 +1,16 @@
 import * as React from "react";
 import {Log} from "../hooks/log";
-import {Dropbox, DropboxAuth, files} from "dropbox";
-import {SaufotoImage, SaufotoAlbum, saufotoImage} from "./SaufotoImage"
-import {authorizeWith} from "./AuthorizationProvicer";
-import {DataSourceProvider, LoadImagesResponse} from "./DataSourceProvider";
-import {useEffect, useState} from "react";
-import {ThumbSize} from "../constants/Images";
-import {ServiceType} from "./ServiceType";
+import {Dropbox, DropboxResponse, files} from "dropbox";
+import {SaufotoAlbum, SaufotoImage, SaufotoObjectType, ServiceImportDropbox, ServiceImportEntry} from "./SaufotoImage"
+import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
+import {SaufotoProvider} from "./SaufotoDataSource";
+import {ServiceType} from "./ServiceType";
+import {ThumbSize} from "../constants/Images";
+import { Image } from 'react-native';
 
 const okFileExtensions = Array(".jpg", ".jpeg", ".png", ".gif", ".heic")
+
 
 export namespace DropboxProvider {
     async function dropboxInstance(config: ServiceTokens) {
@@ -23,10 +24,10 @@ export namespace DropboxProvider {
         });
     }
 
-    export async function loadImages(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+    export async function loadImages(realm: Realm, config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         const dbx = await dropboxInstance(config)
-        const folder = root ? root:''
-        let photosTemp
+        const folder = root ? root : ''
+        let photosTemp: DropboxResponse<files.ListFolderResult>
         if(page !== null) {
             photosTemp = await dbx.filesListFolderContinue({cursor: page})
         } else {
@@ -47,36 +48,20 @@ export namespace DropboxProvider {
         })
         const objects =  Array.apply(null, Array(photos.length)).map((v, i) => {
             let dbxEntry = photos[i]
-            let object: SaufotoAlbum | SaufotoImage
-            if (dbxEntry['.tag'] === 'folder') {
-                object = {} as SaufotoAlbum
-                object.id = dbxEntry.id
-                object.type = 'album'
-                object.title = dbxEntry.name
-                object.placeHolderImage = 'folder_blue.png'
-                object.originalUri = dbxEntry.path_lower as string
-            } else if (dbxEntry['.tag'] === 'file') {
-                object = saufotoImage()
-                object.id = dbxEntry.id
-                object.title = dbxEntry.name
-                object.originalUri = dbxEntry.path_lower as string
-            }
+            const  type = dbxEntry['.tag'] === 'file' ? SaufotoObjectType.Image:SaufotoObjectType.Album
             // @ts-ignore
-            return object;
+            return SaufotoProvider.findOrCreateImport(realm, ServiceType.Dropbox,type, dbxEntry.id, folder, dbxEntry.name, dbxEntry.path_lower as string) as ServiceImportDropbox;
         })
-        const result = {nextPage: photosTemp.result.cursor, items: objects, hasMore: photosTemp.result.has_more }
-        Log.debug("Filtered Dropbox images & folders:" + photos.length + "result: " + JSON.stringify(result) )
+        return {nextPage: photosTemp.result.cursor, items: objects, hasMore: photosTemp.result.has_more }
+    }
 
-        return new Promise((resolve, reject) => {
-            resolve(result)
-        })
-    };
-
-    export async function getThumbsData(config: ServiceTokens, path: string, size: string ) {
+    export async function getThumbsData(realm:Realm, config: ServiceTokens, object: ServiceImportEntry, size: ThumbSize ): Promise<string> {
         const dbx = await dropboxInstance(config)
         const tSize = size.replace('-','')
+        const path = object.originalUri!
         const ext = path.split('.').pop();
         Log.debug("Dropbox load thumb for :" + path +  "ext: " + ext + " size: " + size )
+
         if(okFileExtensions.includes('.'+ ext)) {
             return new Promise(async (resolve, reject) => {
                 const response = await dbx.filesGetThumbnailV2({
@@ -95,27 +80,28 @@ export namespace DropboxProvider {
                 // @ts-ignore
                 const blob = response.result["fileBlob"]
                 const fileReaderInstance = new FileReader();
-                fileReaderInstance.onload = () => {
+                fileReaderInstance.onload = async () => {
                     const data = fileReaderInstance.result as string
-                    const uri = data.replace('application/octet-stream', 'image/jpeg')
+                    const blobUri = data.replace('application/octet-stream', 'image/jpeg')
+                    const thumb = await object.createThumb(size, blobUri, realm)
                     //Log.debug("Get Dropbox image as data url for: '" + path + "'");
-                    resolve(uri)
+                    resolve(thumb)
                 }
                 fileReaderInstance.readAsDataURL(blob)
             })
         } else {
-            return new Promise((resolve, reject) => {
-                reject("Folder")
-            })
+            // @ts-ignore
+            const {default: folder } = await import("../assets/images/folder_blue.png")
+            return Image.resolveAssetSource(folder).uri
         }
 
     }
 
-    export async function loadAlbums(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
-        return loadImages(config, root, page)
+    export async function loadAlbums(realm:Realm, config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+        return loadImages(realm, config, root, page)
     }
 
-    export function albumId(media:SaufotoAlbum | SaufotoImage) {
-        return media.originalUri
+    export function albumId(realm:Realm, media:SaufotoAlbum | SaufotoImage): string | null {
+        return media.originalUri === undefined ? null:media.originalUri
     }
 }

@@ -1,5 +1,5 @@
-import {authorizeWith} from "./AuthorizationProvicer";
-import {SaufotoAlbum, SaufotoImage} from "./SaufotoImage";
+import {authorizeWith, isAuthorized} from "./AuthorizationProvicer";
+import {SaufotoAlbum, SaufotoImage, ServiceImportEntry} from "./SaufotoImage";
 import {DropboxProvider} from "./DropboxDataSource";
 import {GoogleProvider} from "./GoogleDataSource";
 import {ThumbSize} from "../constants/Images";
@@ -35,27 +35,36 @@ export const DataProviders = {
 }
 
 export interface LoadImagesResponse {
-    items: Array<SaufotoImage|SaufotoAlbum>,
+    items: Array<SaufotoImage|SaufotoAlbum|ServiceImportEntry>,
     nextPage: string | null,
     hasMore:boolean
 }
 
 export namespace DataSourceProvider {
 
-    export async function loadImages(type: ServiceType, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+    export async function loadImages(realm:Realm, type: ServiceType, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         const config = await authorizeWith(type)
-        return  await DataProviders[type].loadImages(config, root, page)
+        return  DataProviders[type].loadImages(realm, config, root, page)
     }
 
-    export async function loadAlbums(type: ServiceType, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+    export async function loadAlbums(realm:Realm, type: ServiceType, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         const config = await authorizeWith(type)
-        return  await DataProviders[type].loadAlbums(config, root, page)
+        return  DataProviders[type].loadAlbums(realm, config, root, page)
     }
-    export async function getThumbsData(type: ServiceType, path: string, size: ThumbSize) {
-        const config = await authorizeWith(type)
-        return await DataProviders[type].getThumbsData(config, path, size)
+
+    export async function getThumbsData(realm:Realm, type: ServiceType, object: ServiceImportEntry, size: ThumbSize): Promise<string> {
+        if( await isAuthorized(type) ) {
+            const thumbUri = object.getThumbUri(size)
+            if (thumbUri != null) return thumbUri
+            const config = await authorizeWith(type)
+            return DataProviders[type].getThumbsData(realm, config, object, size)
+        }
+        return new Promise( (resolve, reject) => {
+            reject("Not Authorized")
+        })
     }
-    export function albumId(type: ServiceType, media:SaufotoAlbum | SaufotoImage) {
-        return DataProviders[type].albumId(media)
+
+    export function albumId(realm:Realm, type: ServiceType, media:SaufotoAlbum | SaufotoImage):  string | null {
+        return DataProviders[type].albumId(realm, media)
     }
 }

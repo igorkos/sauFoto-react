@@ -105,7 +105,13 @@ const GoogleTabNavigator = ({navigation, route}) => {
                     tabBarIcon: ({color}) => getTabIcon('ImagesScreen', color),
                 })}
             />
-            <BottomTab.Screen
+
+        </BottomTab.Navigator>
+    );
+}
+
+/*
+  <BottomTab.Screen
                 name="Albums"
                 component={GoogleAlbumsScreen}
                 options={{
@@ -113,7 +119,4 @@ const GoogleTabNavigator = ({navigation, route}) => {
                     tabBarIcon: ({color}) => getTabIcon('Albums', color),
                 }}
             />
-        </BottomTab.Navigator>
-    );
-}
-
+ */

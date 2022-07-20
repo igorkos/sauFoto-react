@@ -3,8 +3,9 @@ import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfigu
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {Log} from "../hooks/log";
-import {SaufotoAlbum, SaufotoImage, saufotoImage} from "./SaufotoImage";
+import {SaufotoAlbum, SaufotoImage, ServiceImportEntry} from "./SaufotoImage";
 import {ServiceTokens} from "./DataServiceConfig";
+import {ServiceType} from "./ServiceType";
 
 export namespace TestProvider {
 
@@ -29,34 +30,36 @@ export namespace TestProvider {
         })
     }
 
-    export async function loadImages(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+    export async function loadImages(realm:Realm, config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         Log.debug("Test data LoadImages", root, page)
-        const start: string = page === null ? '0':page
+        const start: number = page === null ? 0:parseInt(page)
         const items = Array.apply(null, Array(50)).map((v, i) => {
-            let object = saufotoImage()
-            object.id = i+start
+            let object = SaufotoImage.saufotoImage()
+            object.originId = ''+(i+start)
+            object.origin = ServiceType.Saufoto
             object.title = "test " + (i+start)
             object.originalUri = 'https://unsplash.it/400/800?image=' + (i + 1 + start)
             return object
         })
         return new Promise<LoadImagesResponse>((resolve, reject) => {
-            resolve({nextPage: start + 50, items: items, hasMore:true})
+            resolve({nextPage: ''+(start + 50), items: items, hasMore:true})
         })
     }
 
-    export async function loadAlbums(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+    export async function loadAlbums(realm:Realm, config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         return new Promise((resolve, reject) => {
             resolve({nextPage: null, items: [], hasMore:false})
         })
     }
 
-    export async function getThumbsData(config: ServiceTokens, path: string, size: ThumbSize) {
-        return new Promise((resolve, reject) => {
-            resolve(path)
+    export async function getThumbsData(realm:Realm, config: ServiceTokens, object: ServiceImportEntry, size: ThumbSize): Promise<string> {
+        const thumb = await object.createThumb(size, object.originalUri!, realm )
+        return new Promise( (resolve) => {
+            resolve(thumb)
         })
     }
 
-    export function albumId(media:SaufotoAlbum | SaufotoImage) {
-        return media.id
+    export function albumId(realm:Realm, media:SaufotoAlbum | SaufotoImage):  string | null {
+        return media.originId
     }
 }
