@@ -37,7 +37,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     const [visible, setVisible] = useState(true);
     const [token, setToken] = useState<string | null>(null);
     const [root] = useState<string | null>(route.params !== undefined ? (route.params.albumId === undefined ? null : route.params.albumId) : null);
-    const [objects, setObjects] = useState()
+  //  const [objects, setObjects] = useState()
     const [render, setForceRender] = useState(false)
     const realm = useRealm()
 
@@ -73,14 +73,14 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     }
 
     const fetchData = async () => {
-       /* if(visible && type != ServiceType.Saufoto) {
+        if(visible && type != ServiceType.Saufoto) {
              setLoading(true)
              if (albums) {
                  return await DataSourceProvider.loadAlbums(realm, type, root, currentPage)
              } else {
                  return await DataSourceProvider.loadImages(realm, type, root, currentPage)
              }
-        }*/
+        }
     }
 
     useEffect(() => {
@@ -124,12 +124,16 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
         }
     }, [nextPage,isLoading]);
 
+    const objects = useQuery('ServiceImportGoogle')
+
+
     const initData = useCallback(() => {
         switch (type) {
             case ServiceType.Google:{
                 const parent = root === null ? '':root
-                const objects = realm.objects('ServiceImportGoogle') //.filtered("parentId = '" + parent + "' AND type = '" + (albums ? SaufotoObjectType.Album:SaufotoObjectType.Image) + "'")
-                setObjects(objects)
+
+                //realm.objects('ServiceImportGoogle') //.filtered("parentId = '" + parent + "' AND type = '" + (albums ? SaufotoObjectType.Album:SaufotoObjectType.Image) + "'")
+               // setObjects(objects)
                 break;
             }
             case ServiceType.Dropbox: {
@@ -230,35 +234,17 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
         }
     }
     // @ts-ignore
-    const renderItem = ({item, index}) => {
+    const renderItem = useCallback(({item, index}) => {
         return (// @ts-ignore
             <ImageSource  realm={realm} item={item} mode={albumsPreview} onSelected={onItemSelected} dataProvider={type} index={index} onError={onError}/>
-        )}
+        )},[])
 
     const height = albums ? FlatListItemSizes[type].album.layout : FlatListItemSizes[type].image.layout
 
-    const itemKey = useCallback(
-        ({ item, index }: SpeedyListItemMeta<ServiceImportGoogle>) => {
-            return item.originId;
-        },
-        []
-    )
-
     return (
-            <SafeAreaView style={styles.container}>
-                <SpeedyList<ServiceImportGoogle>
-                    items={objects}
-                    itemRenderer={renderItem}
-                    itemHeight={height}
-                    itemKey={itemKey}>
-                    <AlbumsPreview albums={albums} callback={toggleSwitch} state={albumsPreview} isImport={isImport}/>
-                </SpeedyList>
-            </SafeAreaView>
-    )
-}
 
-/*
-<FlatList
+            <SafeAreaView style={styles.container}>
+                <FlatList
                     // @ts-ignore
                     data={objects}
                     extraData={render}
@@ -269,13 +255,20 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
                     numColumns={(albums ? 2 : 3)}
                     initialNumToRender={21}
                     onEndReachedThreshold={0.5}
-                    keyExtractor={(item, index) => item._id.toString()}
+                    keyExtractor={(item, index) => index.toString()}
                     onMomentumScrollBegin={onMomentumScrollBegin}
                     onEndReached={onEndReached}
                     ListFooterComponent={footer(hasMore)}
                     windowSize={60}
                     removeClippedSubviews={false}
                 />
+                <AlbumsPreview albums={albums} callback={toggleSwitch} state={albumsPreview} isImport={isImport}/>
+            </SafeAreaView>
+
+    )
+}
+
+/*
  <InViewPort onChange={(isVisible: boolean | ((prevState: boolean) => boolean)) => checkVisible(isVisible)} style={styles.container}>
  </InViewPort>
  */
@@ -314,10 +307,13 @@ const footer = (hasMore: boolean) => {
 };
 
 interface ImageSourceState {
-    source: {uri: string;} | any,
+    index: number
+    uri: string | null,
+    count: number
     type: SaufotoObjectType,
     selected: boolean,
     error: boolean,
+    title: string | null | undefined
 }
 
 interface ImageSourceProps {
@@ -331,7 +327,7 @@ interface ImageSourceProps {
 }
 
 
-class ImageSource extends PureComponent<ImageSourceProps, ImageSourceState> {
+class ImageSource extends Component<ImageSourceProps, ImageSourceState> {
 
     size: ThumbSize = ThumbSize.THUMB_128;
     imageStyle: any
@@ -339,31 +335,45 @@ class ImageSource extends PureComponent<ImageSourceProps, ImageSourceState> {
     constructor(props: ImageSourceProps) {
         super(props);
         const itemType: SaufotoObjectType = this.props.item.type as SaufotoObjectType
-        Log.error("Constructor!!")
         this.size = thumbSize(itemType === SaufotoObjectType.Image ? FlatListItemSizes[this.props.dataProvider].image.width: FlatListItemSizes[this.props.dataProvider].album.width)
         this.imageStyle = itemType === 'album' ? {...styles.albumStyle,  height: FlatListItemSizes[this.props.dataProvider].album.height, width: FlatListItemSizes[this.props.dataProvider].album.width,}:
             {...styles.imageStyle,  height: FlatListItemSizes[this.props.dataProvider].image.height, width: FlatListItemSizes[this.props.dataProvider].image.width,}
-
+        //this.props.item.getThumbUri(this.size)
+        //this.props.item.count
+        //this.props.item.selected
+        //this.props.item.title
         this.state = {
-            source: {uri:null},
+            index: this.props.index,
+            uri: null,
+            count: 0,
             type: itemType,
-            selected: this.props.item.selected,
+            selected: false,
             error: false,
+            title: null
         }
     }
 
-    /*shouldComponentUpdate(nextProps: ImageSourceProps, nextState : ImageSourceState): boolean {
+    shouldComponentUpdate(nextProps: ImageSourceProps, nextState : ImageSourceState): boolean {
+        if(this.state.index !== nextState.index) {
+            return true
+        }
         if(this.state.error !== nextState.error) {
             return true
         }
-        return false
-    }*/
+        if(this.state.selected !== nextState.selected) {
+            return true
+        }
+        if(this.state.count !== nextState.count) {
+            return true
+        }
+        return this.state.uri !== nextState.uri;
+    }
 
     componentDidMount() {
-        if( this.state.source.uri === null) {
+        if( this.state.uri === null) {
             const fetchThumb = async () => {
                 await DataSourceProvider.getThumbsData(this.props.realm, this.props.dataProvider, this.props.item, this.size).then((src) => {
-                    this.setState({source: {uri: src}});
+                    this.setState({uri:src});
                 })
             }
 
@@ -411,22 +421,20 @@ class ImageSource extends PureComponent<ImageSourceProps, ImageSourceState> {
     }
 
     render() {
-        const media = this.props.item
-        Log.debug("Render image  '" + this.state.source + "'")
+        const source = this.state.error ? Placeholders.imageError:{uri:this.state.uri}
         return (
             <TouchableOpacity
-                key={media.originId}
+                key={this.props.index}
                 style={{flex: 1}}
                 onPress={() => {this.onItemSelected();}}>
                 <FastImage
                     style={this.imageStyle}
-                    source={this.state.source}
+                    source={source}
                     onError={ () => {
                         this.setState({ error: true });
-                        this.setState( { source: Placeholders.imageError});
                     }}>
                 </FastImage>
-                <this.CaptionView title={media.title} count={"count" in media ? media.count :0} type={this.state.type}/>
+                <this.CaptionView title={this.state.title} count={this.state.count} type={this.state.type}/>
             </TouchableOpacity>
         )
     }

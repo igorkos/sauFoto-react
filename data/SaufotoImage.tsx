@@ -1,6 +1,6 @@
 import {Realm, createRealmContext} from '@realm/react';
 import {ServiceType} from "./ServiceType";
-import {thumbData, ThumbData, thumbHeight, ThumbSize, thumbWith} from "../constants/Images";
+import {ThumbData, thumbHeight, ThumbSize, thumbWith} from "../constants/Images";
 import ImageResizer from "react-native-image-resizer";
 
 export enum SaufotoObjectType {
@@ -233,7 +233,7 @@ export class ServiceImportEntry extends Realm.Object {
     syncOp!: string
     type!: string
     originalUri?: string | null
-    thumbs!:string[]
+    thumbs?:string | null
     selected!: boolean
     title?: string | null
     count!: number
@@ -251,18 +251,33 @@ export class ServiceImportEntry extends Realm.Object {
         }
     }
 
+    _getThumbs(): ThumbData[] | null {
+        const list = this.thumbs
+        if (list != null) {
+            return  JSON.parse(list) as ThumbData[]
+        }
+        return  null
+    }
+
     getThumbUri(size: ThumbSize): string | null {
-        for (let entry of this.thumbs) {
-            const thumb = JSON.parse(entry) as ThumbData
-            if( thumb.size == size) return thumb.uri
+        const thumbs = this._getThumbs()
+        if (thumbs != null) {
+            for( let thumb of thumbs) {
+                if (thumb.size == size) return thumb.uri
+            }
         }
         return null
     }
 
     async createThumb(size:ThumbSize, uri:string,  realm: Realm): Promise<string> {
         const result = await ImageResizer.createResizedImage(uri, thumbWith(size), thumbHeight(size), 'JPEG', 100, 0)
+        let thumbs = this._getThumbs()
+        if( thumbs == null) {
+            thumbs = Array()
+        }
+        thumbs.push({size:size, uri:result.uri})
         realm.write(() => {
-            this.thumbs.push(thumbData(size, result.uri))
+            this.thumbs = JSON.stringify(thumbs)
         })
         return result.uri
     }
@@ -282,7 +297,7 @@ export class ServiceImportCamera extends ServiceImportEntry {
             syncOp:  {type: 'string', default: SaufotoSyncAction.None},
             title: {type: 'string?', default: null},
             originalUri:  {type: 'string?', default: null},
-            thumbs: {type: 'list', objectType:'string', default: []},
+            thumbs: {type: 'string?', default: null},
             count:{type: 'int', default: 0},
         },
     };
@@ -302,7 +317,7 @@ export class ServiceImportDropbox extends ServiceImportEntry {
             syncOp:  {type: 'string', default: SaufotoSyncAction.None},
             title: {type: 'string?', default: null},
             originalUri:  {type: 'string?', default: null},
-            thumbs: {type: 'list', objectType:'string', default: []},
+            thumbs: {type: 'string?', default: null},
             count:{type: 'int', default: 0},
         },
     };
@@ -322,7 +337,7 @@ export class ServiceImportGoogle extends ServiceImportEntry {
             syncOp:  {type: 'string', default: SaufotoSyncAction.None},
             title: {type: 'string?', default: null},
             originalUri:  {type: 'string?', default: null},
-            thumbs: {type: 'list', objectType:'string', default: []},
+            thumbs: {type: 'string?', default: null},
             count:{type: 'int', default: 0},
         },
     };

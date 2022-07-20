@@ -92,20 +92,3 @@ export interface ThumbData{
     uri: string
 }
 
-export function thumbData(size: ThumbSize, uri: string): string {
-    return JSON.stringify({size:size, uri:uri})
-}
-
-export async function thumbForObject(realm:Realm, object: ServiceImportEntry, uri:string,   size: ThumbSize): Promise<string> {
-    for (let entry of object.thumbs) {
-        const thumb = JSON.parse(entry) as ThumbData
-        if( thumb.size == size) return new Promise<string>((resolve, reject) => {
-            resolve(thumb.uri)
-        })
-    }
-    const result = await ImageResizer.createResizedImage(uri, thumbWith(size), thumbHeight(size), 'JPEG', 100, 0)
-    realm.write(() => {
-        object.thumbs.push(thumbData(size, result.uri))
-    })
-    return result.uri
-}
