@@ -1,9 +1,10 @@
-import {Realm, createRealmContext} from '@realm/react';
+
 import {ServiceType} from "./ServiceType";
 import {ThumbData, thumbHeight, ThumbSize, thumbWith} from "../constants/Images";
 import ImageResizer from "react-native-image-resizer";
 
 export enum SaufotoObjectType {
+    None = 'none',
     Image = 'image',
     Album = 'album'
 }
@@ -12,8 +13,7 @@ export enum SaufotoSyncAction {
     None = 'none',
     Pending = 'pending'
 }
-export class SaufotoMedia  extends Realm.Object {
-    _id!: Realm.BSON.ObjectId;
+export class SaufotoMedia  {
 
     /**
      * Local import/export status
@@ -104,7 +104,6 @@ export class SaufotoImage extends SaufotoMedia {
 
     static saufotoImage(): SaufotoImage {
         return {
-            _id: new Realm.BSON.ObjectId(),
             update: 'unknown',
             remoteSyncOp: 'unknown',
             origin: 'unknown',
@@ -177,7 +176,6 @@ export class SaufotoAlbum extends SaufotoMedia {
 
     static saufotoAlbum():SaufotoAlbum {
         return {
-            _id: new Realm.BSON.ObjectId(),
             update: 'unknown',
             remoteSyncOp: 'unknown',
             origin: 'unknown',
@@ -224,9 +222,7 @@ export class SaufotoAlbum extends SaufotoMedia {
     };
 }
 
-export class ServiceImportEntry extends Realm.Object {
-    _id!: Realm.BSON.ObjectId
-    sfObject?: Realm.BSON.ObjectId
+export class ServiceImportEntry  {
     origin!: string
     originId!: string
     parentId?:  string | null
@@ -240,7 +236,6 @@ export class ServiceImportEntry extends Realm.Object {
 
     static serviceImportEntry(origin: ServiceType, type: SaufotoObjectType, id: string, parentId: string | null, title: string | null, uri: string | null, count: number | null) {
         return {
-            _id: new Realm.BSON.ObjectId(),
             type: type,
             origin: origin,
             originId: id,
@@ -269,16 +264,14 @@ export class ServiceImportEntry extends Realm.Object {
         return null
     }
 
-    async createThumb(size:ThumbSize, uri:string,  realm: Realm): Promise<string> {
+    async createThumb(size:ThumbSize, uri:string): Promise<string> {
         const result = await ImageResizer.createResizedImage(uri, thumbWith(size), thumbHeight(size), 'JPEG', 100, 0)
         let thumbs = this._getThumbs()
         if( thumbs == null) {
             thumbs = Array()
         }
         thumbs.push({size:size, uri:result.uri})
-        realm.write(() => {
-            this.thumbs = JSON.stringify(thumbs)
-        })
+
         return result.uri
     }
 }
@@ -342,11 +335,7 @@ export class ServiceImportGoogle extends ServiceImportEntry {
         },
     };
 }
-export const realmConfig = {
-    schema: [SaufotoImage, SaufotoAlbum, ServiceImportCamera, ServiceImportDropbox, ServiceImportGoogle],
-};
 
-export default createRealmContext(realmConfig);
 
 
 

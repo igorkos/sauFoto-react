@@ -1,7 +1,5 @@
 import * as React from "react";
-import ImageResizer from "react-native-image-resizer";
-import {ServiceImportEntry} from "../data/SaufotoImage";
-import {LoadImagesResponse} from "../data/DataSourceProvider";
+import {Image} from "react-native";
 
 export const Placeholders = {
     folder: require('../assets/images/folder_blue.png'),
@@ -12,7 +10,7 @@ export const Placeholders = {
 };
 
 
-export function getPlaceFolder(image: string| null) {
+export function getPlaceholder(image: string| null) {
     switch (image) {
         case 'folder_blue.png' :{
             return Placeholders.folder
@@ -31,6 +29,26 @@ export function getPlaceFolder(image: string| null) {
         }
     }
     return Placeholders.imageError
+}
+
+export const placeholderUri = new Map<string,string>()
+
+export async function getPlaceholderUri() {
+    // @ts-ignore
+    const { default: folder } = await import("../assets/images/folder_blue.png")
+    placeholderUri.set('folder_blue.png', Image.resolveAssetSource(folder).uri)
+    // @ts-ignore
+    const { default: image } = await import("../assets/images/image_placeholder.png")
+    placeholderUri.set('image_placeholder.png', Image.resolveAssetSource(image).uri)
+    // @ts-ignore
+    const { default: asset } = await import("../assets/images/asset_select_icon.png")
+    placeholderUri.set('asset_select_icon.png', Image.resolveAssetSource(asset).uri)
+    // @ts-ignore
+    const { default: error } = await import("../assets/images/error_load_image.png")
+    placeholderUri.set('error_load_image.png', Image.resolveAssetSource(error).uri)
+    // @ts-ignore
+    const { default: sync } = await import("../assets/images/sync_white.png")
+    placeholderUri.set('sync_white.png', Image.resolveAssetSource(sync).uri)
 }
 
 
@@ -91,4 +109,5 @@ export interface ThumbData{
     size: ThumbSize
     uri: string
 }
+
 

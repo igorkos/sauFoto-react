@@ -3,13 +3,16 @@ import * as MediaLibrary from "expo-media-library";
 import {Log} from "../hooks/log";
 import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfiguration} from "react-native-app-auth";
 import {PermissionStatus} from "expo-modules-core/src/PermissionsInterface";
-import {thumbData, ThumbData, thumbHeight, ThumbSize, thumbWith} from "../constants/Images";
+import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {SaufotoAlbum, SaufotoImage, SaufotoObjectType, ServiceImportCamera, ServiceImportEntry} from "./SaufotoImage";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ServiceType} from "./ServiceType";
 import {SaufotoProvider} from "./SaufotoDataSource";
-import ImageResizer from 'react-native-image-resizer';
+import {database} from "../index";
+import {ImportObject} from "./watermelon/ImportObject";
+import {Q} from "@nozbe/watermelondb";
+import {addToTable} from "./watermelon/DataSourceUtils";
 
 export namespace CameraProvider {
 
@@ -41,28 +44,43 @@ export namespace CameraProvider {
         })
     }
 
-    export async function loadImages(realm:Realm, config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
-        const album = await MediaLibrary.getAlbumAsync('Camera')
-        const options = page === null ? {album: album, first:50}:{album: album, first:50, after:page}
-        const photosTemp = await MediaLibrary.getAssetsAsync(options)
-        Log.debug("Loading Camera Roll images: " + photosTemp.assets.length)
-        const items =  Array.apply(null, Array(photosTemp.assets.length)).map((v, i) => {
-            return SaufotoProvider.findOrCreateImport(realm, ServiceType.Camera, SaufotoObjectType.Image, photosTemp.assets[i].id, 'Camera', photosTemp.assets[i].filename, photosTemp.assets[i].uri) as unknown as ServiceImportCamera
-        })
+    export async function loadImages(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+        let hasMore = true
+        let nextPage = page
+        let count = 0
 
-        return {nextPage: items[items.length - 1].originId, items: items, hasMore: !(photosTemp.assets.length < 50)}
+        Log.debug("Camera roll items load start")
+        const album = await MediaLibrary.getAlbumAsync('Camera')
+
+        while (hasMore) {
+            const options = nextPage === null ? {album: album, first:50}:{album: album, first:50, after:nextPage}
+            const photosTemp = await MediaLibrary.getAssetsAsync(options)
+
+            Log.debug("Loading Camera Roll images: " + photosTemp.assets.length)
+
+            count += await addToTable('ImportObject', photosTemp.assets, ServiceType.Camera, (root === null ? '' : root),
+                (item: any) => { return SaufotoObjectType.Image }, 'filename', 'uri')
+
+            Log.debug("Added Camera roll  entries: " + count)
+
+
+            hasMore = !(photosTemp.assets.length < 50)
+            nextPage = photosTemp.assets[photosTemp.assets.length - 1].id
+        }
+        Log.debug("Camera roll items load complete")
+        return {nextPage: null, items: [], hasMore: false }
     }
 
-    export async function getThumbsData(realm:Realm, config: ServiceTokens, object: ServiceImportEntry, size: ThumbSize): Promise<string> {
-        const thumb = await object.createThumb(size, object.originalUri!, realm )
+    export async function getThumbsData(config: ServiceTokens, object: ImportObject, size: ThumbSize): Promise<string> {
+        const thumb = await object.createThumb(size, object.originalUri!)
         return thumb
     }
 
-    export async function loadAlbums(realm:Realm, config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+    export async function loadAlbums(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         return {nextPage: null, items: [], hasMore:false}
     }
 
-    export function albumId(realm:Realm, media:SaufotoAlbum | SaufotoImage):  string | null{
+    export function albumId( media:ImportObject):  string | null{
         return media.originId
     }
 }

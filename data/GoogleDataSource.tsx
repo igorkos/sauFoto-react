@@ -1,19 +1,11 @@
 import {Log} from "../hooks/log";
-import {
-    SaufotoAlbum,
-    SaufotoImage,
-    SaufotoObjectType,
-    ServiceImportDropbox,
-    ServiceImportEntry,
-    ServiceImportGoogle
-} from "./SaufotoImage";
+import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./SaufotoImage";
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
-import {SaufotoProvider} from "./SaufotoDataSource";
 import {ServiceType} from "./ServiceType";
-import { Thread } from 'react-native-threads';
-import * as http from "http";
+import {ImportObject} from "./watermelon/ImportObject";
+import {addToTable} from "./watermelon/DataSourceUtils";
 
 export namespace GoogleProvider {
 
@@ -60,17 +52,20 @@ export namespace GoogleProvider {
 
     interface GoogleAlbum {
         id: string,
-        description: string,
+        title: string,
         productUrl: string,
-        baseUrl: string,
-        mimeType: string,
-        mediaMetadata: GoogleMediaMetadata,
-        contributorInfo: GoogleContributorInfo,
-        filename: string
+        mediaItemsCount: string,
+        coverPhotoBaseUrl: string,
+        coverPhotoMediaItemId: string,
     }
 
     interface GoogleMediaListResponse {
         mediaItems: [GoogleMediaItem],
+        nextPageToken: string
+    }
+
+    interface GoogleAlbumsListResponse {
+        albums: [GoogleAlbum],
         nextPageToken: string
     }
 
@@ -137,7 +132,8 @@ export namespace GoogleProvider {
                 }
             }}
     }
-    async function getImage(realm:Realm, config: ServiceTokens, id: string): Promise<GoogleMediaItem> {
+
+    async function getImage(config: ServiceTokens, id: string): Promise<GoogleMediaItem> {
         let request = getImageRequest(config, id)
         return await fetch(request.uri, request.params).then((response) => {
                 if (response.ok) {
@@ -150,19 +146,18 @@ export namespace GoogleProvider {
         )
     }
 
-    export async function loadImages(realm:Realm, config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
-
+    export async function loadImages(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         let hasMore = true
         let nextPage = page
         let count = 0
-        const images = realm.objects("ServiceImportGoogle")
 
+        Log.debug("Google items load start")
 
         while (hasMore) {
             let request = root !== null ? albumImagesRequest(config, root, nextPage) : loadImagesRequest(config, nextPage)
             //Log.debug("Load google items:" + JSON.stringify(request))
 
-            const response = await fetch(request.uri, request.params).then((response) => {
+            const response: GoogleMediaListResponse = await fetch(request.uri, request.params).then((response) => {
                     if (response.ok) {
                         return response.json()
                     } else {
@@ -179,85 +174,79 @@ export namespace GoogleProvider {
             }
 
             if (response.mediaItems === undefined) {
-                return new Promise((resolve, reject) => {
+                return new Promise((resolve) => {
                     resolve({nextPage: null, items: [], hasMore: false})
                 })
             }
-            count = count + response.mediaItems.length
-            Log.debug("Load google items get:" + response.mediaItems.length + " total = " + count)
-            const newItems = Array()
-            response.mediaItems.forEach( (value: { id: string; }) => {
-                const find = images.find((object) => {
-                    return object.originId === value.id
-                })
-                if( find === undefined) {
-                    newItems.push(value)
-                }
-            })
-            Log.debug("Google item new " + newItems.length)
-            realm.write(() => {
-                newItems.forEach((value) => {
-                    const entry = ServiceImportEntry.serviceImportEntry(ServiceType.Google, SaufotoObjectType.Image, value.id, (root === null ? '' : root), value.filename, value.baseUrl, count)
-                    realm.create("ServiceImportGoogle", entry)
-                })
-            })
 
-          /*  const items = Array.apply(null, Array(response.mediaItems.length)).map((v, i) => {
-                let entry = response.mediaItems[i]
-                return SaufotoProvider.findOrCreateImport(realm, ServiceType.Google, SaufotoObjectType.Image, entry.id, (root === null ? '' : root), entry.filename, entry.baseUrl) as unknown as ServiceImportGoogle;
-            })*/
+            count += await addToTable('ImportObject', response.mediaItems, ServiceType.Google, (root === null ? '' : root),
+                (item: any) => { return SaufotoObjectType.Image }, 'filename', 'baseUrl')
+
+            Log.debug("Added Google  entries: " + count)
+
             hasMore = response.nextPageToken !== undefined
             nextPage = response.nextPageToken
         }
-
-        //return {nextPage: response.nextPageToken, items: items, hasMore: (response.nextPageToken !== undefined) }
+        Log.debug("Google items load complete")
         return {nextPage: null, items: [], hasMore: false }
     }
 
     const GOOGLE_ALBUMS_ITEMS = 'https://photoslibrary.googleapis.com/v1/albums'
 
-    export async function loadAlbums(realm:Realm, config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
-        let request = GOOGLE_ALBUMS_ITEMS + "?pageSize=50"
-        if( page !== null ) {
-            request = request + '&pageToken=' + page
-        }
-        Log.debug("Load google albums:" + request)
-        const response = await fetch(request, {
-            method: 'GET',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                Authorization: 'Bearer ' + config.accessToken
+    export async function loadAlbums( config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+        let hasMore = true
+        let nextPage = page
+        let count = 0
+
+        Log.debug("Google albums load start")
+
+        while (hasMore) {
+            let request = GOOGLE_ALBUMS_ITEMS + "?pageSize=50"
+            if( page !== null ) {
+                request = request + '&pageToken=' + page
             }
-        }).then((response) => {
-                if (response.ok) {
-                    return response.json()
-                } else {
-                    return null
+            Log.debug("Load google albums:" + request)
+            const response: GoogleAlbumsListResponse = await fetch(request, {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + config.accessToken
                 }
-            }
-        )
-        const items = Array.apply(null, Array(response.albums.length)).map((v, i) => {
-            let entry = response.albums[i]
-            let count = (entry.mediaItemsCount === null) ? 0:entry.mediaItemsCount
-            return SaufotoProvider.findOrCreateImport(realm, ServiceType.Google, SaufotoObjectType.Album, entry.id, '', entry.title, entry.coverPhotoBaseUrl, count) as unknown as ServiceImportGoogle;
-        })
-        return {nextPage: response.nextPageToken, items: items, hasMore: (response.nextPageToken !== undefined) }
+            }).then((response) => {
+                    if (response.ok) {
+                        return response.json()
+                    } else {
+                        return null
+                    }
+                }
+            )
+
+            count += await addToTable('ImportObject', response.albums, ServiceType.Google, (root === null ? '' : root),
+                (item: any) => { return SaufotoObjectType.Album }, 'title', 'coverPhotoBaseUrl', 'coverPhotoMediaItemId', 'mediaItemsCount')
+
+            Log.debug("Added Google  entries: " + count)
+
+            hasMore = response.nextPageToken !== undefined
+            nextPage = response.nextPageToken
+        }
+        Log.debug("Google albums load complete")
+        return {nextPage: nextPage, items: [], hasMore:false }
     }
 
-    export async function getThumbsData(realm:Realm, config: ServiceTokens, object: ServiceImportEntry, size: ThumbSize): Promise<string> {
-
-        let uri = await object.createThumb(size, object.originalUri + '=' + size, realm ).catch(async (err) =>{
+    export async function getThumbsData(config: ServiceTokens, object: ImportObject, size: ThumbSize): Promise<string> {
+        const source = object.originalUri
+        let uri = await object.createThumb(size,  source + '=' + size ).catch(async () =>{
             return null
         })
         if( uri === null) {
-            const image = await getImage(realm, config, object.originId)
-            uri =  await object.createThumb(size, image.baseUrl + '=' + size, realm )
+            const image = await getImage(config, object.originId)
+            uri =  await object.createThumb(size, image.baseUrl + '=' + size)
         }
         return uri
     }
 
-    export function albumId(realm:Realm, media:SaufotoAlbum | SaufotoImage) : string | null {
+    export function albumId(media:ImportObject) : string | null {
         return media.originId
     }
 }

@@ -18,7 +18,9 @@ import com.facebook.soloader.SoLoader;
 import com.akellolcc.saufoto.newarchitecture.MainApplicationReactNativeHost;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import com.reactlibrary.RNThreadPackage;
+
+import com.nozbe.watermelondb.jsi.WatermelonDBJSIPackage;
+import com.facebook.react.bridge.JSIModulePackage;
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -35,8 +37,6 @@ public class MainApplication extends Application implements ReactApplication {
                     List<ReactPackage> packages = new PackageList(this).getPackages();
                     // Packages that cannot be autolinked yet can be added manually here, for example:
                     // packages.add(new MyReactNativePackage());
-                    //packages.add(new reactNativeHamstersPackage(mReactNativeHost));
-                    packages.add(new RNThreadPackage(mReactNativeHost));
                     return packages;
                 }
 
@@ -44,6 +44,11 @@ public class MainApplication extends Application implements ReactApplication {
                 protected String getJSMainModuleName() {
                     return "index";
                 }
+
+               /* @Override
+                 protected JSIModulePackage getJSIModulePackage() {
+                   return new WatermelonDBJSIPackage();
+                 }*/
             });
 
     private final ReactNativeHost mNewArchitectureNativeHost =

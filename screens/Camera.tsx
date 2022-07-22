@@ -5,11 +5,17 @@ import {View} from "../components/Themed";
 import {useState} from "react";
 
 export default function CameraScreen() {
-    const [type, setType] = useState(CameraType.back);
+ //   const [type, setType] = useState(CameraType.back);
 
     return (
         <View style={styles.container}>
-            <Camera style={styles.camera} type={type}>
+
+        </View>
+    )
+}
+
+/*
+     <Camera style={styles.camera} type={type}>
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity
                         style={styles.button}
@@ -20,10 +26,7 @@ export default function CameraScreen() {
                     </TouchableOpacity>
                 </View>
             </Camera>
-        </View>
-    )
-}
-
+ */
 const styles = StyleSheet.create({
     container: {
         flex: 1,

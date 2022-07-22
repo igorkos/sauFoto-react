@@ -9,18 +9,17 @@
 import * as React from 'react';
 import 'localstorage-polyfill';
 import Navigation from './navigation';
-import SaufotoContext from './data/SaufotoImage';
-const {RealmProvider} = SaufotoContext;
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import {useEffect} from "react";
+import {getPlaceholderUri} from "./constants/Images";
 
 export default function App() {
+    useEffect( () => {
+        getPlaceholderUri().then(r => {})
+    })
   return (
-      <RealmProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>
                 <Navigation/>
           </GestureHandlerRootView>
-      </RealmProvider>
-
   );
 };
-

@@ -19,8 +19,8 @@ import {
 } from "react-native";
 import {DataSourceProvider, LoadImagesResponse} from "../data/DataSourceProvider";
 import {Log} from "../hooks/log";
-import SaufotoContext, {SaufotoAlbum, SaufotoImage, SaufotoObjectType, ServiceImportEntry} from "../data/SaufotoImage";
-import {getPlaceFolder, thumbSize} from "../constants/Images";
+import {SaufotoAlbum, SaufotoImage, SaufotoObjectType, ServiceImportEntry} from "../data/SaufotoImage";
+import {getPlaceholder, thumbSize} from "../constants/Images";
 import {FlatListItemSizes, screenHeight, screenWidth} from "../constants/Layout";
 import {ProgressCircle, Text, View} from "../components/Themed";
 import Colors from "../constants/Colors";
@@ -28,9 +28,6 @@ import Carousel from "react-native-snap-carousel";
 import PhotoView from "react-native-photo-view";
 import {HeaderBackButton} from "@react-navigation/elements";
 import FastImage from "react-native-fast-image";
-// @ts-ignore
-import InViewPort from "@coffeebeanslabs/react-native-inviewport"
-const {useRealm, useQuery} = SaufotoContext;
 
 const Stack = createNativeStackNavigator();
 // @ts-ignore
@@ -64,9 +61,7 @@ const renderListView = (navigation: { push: (arg0: string, arg1: { albumId: stri
     const [visible, setVisible] = useState(true);
     const [root] = useState<string | null>(route.params !== undefined ? (route.params.albumId === undefined ? null : route.params.albumId) : null);
     const [first] = useState<number>(route.params !== undefined ? (route.params.first === undefined ? 0 : route.params.first) : 0);
-    const realmInst = useRealm()
-    const [realm, setRealm] = useState<Realm>(realmInst)
-    const [objects, setObjects] = useState<Realm.Results<Realm.Object>>()
+    objects = []
 
 
     if (Platform.OS === 'android') {
@@ -77,12 +72,12 @@ const renderListView = (navigation: { push: (arg0: string, arg1: { albumId: stri
 
     const imageUri = async (item: ServiceImportEntry) => {
         const size = thumbSize(FlatListItemSizes[type].image.width)
-        return await DataSourceProvider.getThumbsData(realm, type, item, size)
+        return await DataSourceProvider.getThumbsData( type, item, size)
     }
 
 
     const initData = async () => {
-        //objects = albums? useQuery(SaufotoAlbum):useQuery(SaufotoImage);
+
     }
 
     useEffect(() => {
@@ -105,30 +100,10 @@ const renderListView = (navigation: { push: (arg0: string, arg1: { albumId: stri
         }
     }
 
-    const memoizedValue = useMemo(() => renderList, [objects]);
 
     const height = albums ? FlatListItemSizes[type].album.layout : FlatListItemSizes[type].image.layout
-    return !isPreview ? (
-        <InViewPort onChange={(isVisible: boolean | ((prevState: boolean) => boolean)) => checkVisible(isVisible)} style={styles.container}>
-            <SafeAreaView style={styles.container}>
-                <FlatList
-                    // @ts-ignore
-                    data={objects}
-                    getItemLayout={(data, index) => (
-                        {length: height, offset: height * index, index}
-                    )}
-                    renderItem={renderList}
-                    numColumns={(albums ? 2 : 3)}
-                    initialNumToRender={21}
-                    onEndReachedThreshold={0.5}
-                    keyExtractor={(item, index) => index.toString()}
-                />
-            </SafeAreaView>
-        </InViewPort>
-    ):(
-        <View style={{ flex: 1, backgroundColor:Colors.light.black, alignItems: 'center'}} >
+    return (<View style={{ flex: 1, alignItems: 'center'}} >
             <StatusBar hidden={true} />
-            <InViewPort onChange={(isVisible: boolean | ((prevState: boolean) => boolean)) => checkVisible(isVisible)} style={{ flex: 1, backgroundColor:Colors.light.black, alignItems: 'flex-start'}}>
                 <Carousel
                     slideStyle={{ width: screenWidth }}
                     layout='default'
@@ -160,11 +135,26 @@ const renderListView = (navigation: { push: (arg0: string, arg1: { albumId: stri
                                       navigation.goBack()
                                   }}
                 />
-            </InViewPort>
         </View>
     )
 }
 
+/*
+ <SafeAreaView style={styles.container}>
+                <FlatList
+                    // @ts-ignore
+                    data={objects}
+                    getItemLayout={(data, index) => (
+                        {length: height, offset: height * index, index}
+                    )}
+                    renderItem={renderList}
+                    numColumns={(albums ? 2 : 3)}
+                    initialNumToRender={21}
+                    onEndReachedThreshold={0.5}
+                    keyExtractor={(item, index) => index.toString()}
+                />
+            </SafeAreaView>
+ */
 
 const ImageSource = (props: { item: SaufotoAlbum | SaufotoImage; isImport: any; getThumbUri: (arg0: any) => Promise<any>; mode: any; onSelected: (arg0: SaufotoAlbum | SaufotoImage, arg1: number) => void; index: any; dataProvider: ServiceType; }) => {
     const [uri, setUri] = useState<string | null>();
@@ -172,7 +162,6 @@ const ImageSource = (props: { item: SaufotoAlbum | SaufotoImage; isImport: any; 
     const [isImport] = useState(props.isImport);
     const [selected, setSelected] = useState(props.item.selected);
     const [error, setError] = useState(false);
-    const realm = useRealm()
     const media = type === 'album' ? (props.item as SaufotoAlbum):(props.item as SaufotoImage)
 
     const fetchThumb = async (source: string | undefined) => {
@@ -202,10 +191,10 @@ const ImageSource = (props: { item: SaufotoAlbum | SaufotoImage; isImport: any; 
 
     const selectShow = () => {
         if(media.update === 'pending') {
-            return getPlaceFolder('sync_white.png')
+            return getPlaceholder('sync_white.png')
         }
         if( selected ) {
-            return getPlaceFolder('asset_select_icon.png')
+            return getPlaceholder('asset_select_icon.png')
         }
         return null
     }
@@ -223,7 +212,7 @@ const ImageSource = (props: { item: SaufotoAlbum | SaufotoImage; isImport: any; 
         {...styles.imageStyle,  height: FlatListItemSizes[props.dataProvider].image.height, width: FlatListItemSizes[props.dataProvider].image.width,}
     //Log.debug("Render image  '" + uri + "'")
     const image = error ?  media.errorImage:media.placeHolderImage
-    const source = uri === null ? getPlaceFolder(image):{uri:uri, priority: FastImage.priority.low,}
+    const source = uri === null ? getPlaceholder(image):{uri:uri, priority: FastImage.priority.low,}
     return (
         <TouchableOpacity
             key={media.originId}
