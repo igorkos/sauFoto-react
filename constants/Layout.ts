@@ -16,6 +16,11 @@ export const FlatListItemSizes = {
       width: screenWidth/2 - 6,
       height:screenWidth/2 - 6,
       layout: (screenWidth/2 - 6) + 40
+    },
+    small:{
+      width: 32,
+      height:32,
+      layout:32
     }
   },
   Google:{
@@ -28,6 +33,11 @@ export const FlatListItemSizes = {
       width:screenWidth/3 - 2,
       height:screenWidth/3 - 2,
       layout: screenWidth/3 - 2,
+    },
+    small:{
+      width: 32,
+      height:32,
+      layout:32
     }
   },
   Camera:{
@@ -40,6 +50,11 @@ export const FlatListItemSizes = {
       width:screenWidth/3 - 2,
       height:screenWidth/3 - 2,
       layout:screenWidth/3 - 2
+    },
+    small:{
+      width: 32,
+      height:32,
+      layout:32
     }
   },
   Saufoto:{
@@ -52,6 +67,11 @@ export const FlatListItemSizes = {
       width:screenWidth/3 - 2,
       height:screenWidth/3 - 2,
       layout:screenWidth/3 - 2,
+    },
+    small:{
+      width: 32,
+      height:32,
+      layout:32
     }
   }
 }

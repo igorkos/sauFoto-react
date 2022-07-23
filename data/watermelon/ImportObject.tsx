@@ -1,10 +1,10 @@
 import {Model} from "@nozbe/watermelondb";
-import {field, text, writer} from '@nozbe/watermelondb/decorators'
-import {getPlaceholderUri, placeholderUri, ThumbData, thumbHeight, ThumbSize, thumbWith} from "../../constants/Images";
+import {field, reader, text, writer} from '@nozbe/watermelondb/decorators'
+import {placeholderUri, ThumbData, thumbHeight, ThumbSize, thumbWith} from "../../constants/Images";
 import ImageResizer from "react-native-image-resizer";
 import {ServiceType} from "../ServiceType";
-import {SaufotoObjectType} from "../SaufotoImage";
-import {Image} from "react-native";
+import {SaufotoObjectType, SaufotoSyncAction} from "./SaufotoImage";
+import {getThumbs, thumbUri} from "./DataSourceUtils";
 
 export class ImportObject extends Model {
     static table = 'ImportObject'
@@ -21,15 +21,6 @@ export class ImportObject extends Model {
     @field('selected') selected!: boolean
     @text('keyItemId') keyItemId: string | undefined
 
-
-    _getThumbs(): ThumbData[] | null {
-        const list = this.thumbs
-        if (list != null) {
-            return  JSON.parse(list) as ThumbData[]
-        }
-        return  null
-    }
-
     get smallThumb() : string | null {
         const thumbs =  this.origin == ServiceType.Dropbox ? this.getThumbUri(ThumbSize.THUMB_256):this.getThumbUri(ThumbSize.THUMB_128)
         if (thumbs != null) {
@@ -37,7 +28,7 @@ export class ImportObject extends Model {
         }
         switch (this.origin) {
             case ServiceType.Google: return this.originalUri + '=' + ThumbSize.THUMB_128
-            case ServiceType.Camera: return this.originalUri
+            case ServiceType.Camera: return null
             case ServiceType.Dropbox: {
                 if(this.type === SaufotoObjectType.Image) return null
                 return placeholderUri.get('folder_blue.png') as string
@@ -47,12 +38,14 @@ export class ImportObject extends Model {
     }
 
     getThumbUri(size: ThumbSize): string | null {
-        const thumbs = this._getThumbs()
-        if (thumbs != null) {
-            for( let thumb of thumbs) {
-                if (thumb.size == size) return thumb.uri
-            }
-        }
+        return thumbUri(this.thumbs, size)
+    }
+
+    @writer async setLocalImageFile(value: string) {
+
+    }
+
+    @reader async getLocalImageFile(): Promise<string | null> {
         return null
     }
 
@@ -60,14 +53,26 @@ export class ImportObject extends Model {
         this.update( record => record.selected = selected)
     }
 
-    @writer async createThumb(size:ThumbSize, uri:string): Promise<string> {
+    @writer async setSyncOp(operation: SaufotoSyncAction) {
+        this.update( record => record.syncOp = operation)
+    }
+
+    @writer async setThumbs(value: string) {
+        return this.update(record => record.thumbs = value);
+    }
+
+    async createThumb(size:ThumbSize, uri:string): Promise<string> {
         const result = await ImageResizer.createResizedImage(uri, thumbWith(size), thumbHeight(size), 'JPEG', 100, 0)
-        let thumbs = this._getThumbs()
+        let thumbs = getThumbs(this.thumbs)
         if( thumbs == null) {
             thumbs = Array()
         }
         thumbs.push({size:size, uri:result.uri})
-        await this.update( record => record.thumbs = JSON.stringify(thumbs))
+        await  this.setThumbs( JSON.stringify(thumbs))
         return result.uri
+    }
+
+    @reader async getOriginalUri(): Promise<string> {
+        return this.originalUri
     }
 }

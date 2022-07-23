@@ -1,5 +1,5 @@
 import {Log} from "../hooks/log";
-import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./SaufotoImage";
+import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
@@ -234,19 +234,23 @@ export namespace GoogleProvider {
         return {nextPage: nextPage, items: [], hasMore:false }
     }
 
-    export async function getThumbsData(config: ServiceTokens, object: ImportObject, size: ThumbSize): Promise<string> {
+    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage, size: ThumbSize): Promise<string> {
         const source = object.originalUri
-        let uri = await object.createThumb(size,  source + '=' + size ).catch(async () =>{
+        let uri = await (object as ImportObject).createThumb(size,  source + '=' + size ).catch(async () =>{
             return null
         })
         if( uri === null) {
-            const image = await getImage(config, object.originId)
-            uri =  await object.createThumb(size, image.baseUrl + '=' + size)
+            const image = await getImage(config, (object as ImportObject).originId)
+            uri =  await (object as ImportObject).createThumb(size, image.baseUrl + '=' + size)
         }
         return uri
     }
 
-    export function albumId(media:ImportObject) : string | null {
-        return media.originId
+    export async function getImageData( config: ServiceTokens, object: ImportObject|SaufotoImage): Promise<string> {
+
+    }
+
+    export function albumId(media:ImportObject|SaufotoImage) : string | null {
+        return (media as ImportObject).originId
     }
 }

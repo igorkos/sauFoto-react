@@ -10,6 +10,7 @@ import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite'
 import schema from './data/watermelon/shema'
 import migrations from './data/watermelon/migrations'
 import {ImportObject} from "./data/watermelon/ImportObject";
+import {SaufotoAlbum, SaufotoImage} from "./data/watermelon/SaufotoImage";
 // import Post from './model/Post' // ⬅️ You'll import your Models here
 
 // First, create the adapter to the underlying database:
@@ -33,6 +34,8 @@ export const database = new Database({
     adapter,
     modelClasses: [
         ImportObject,
+        SaufotoImage,
+        SaufotoAlbum,
     ],
 })
 

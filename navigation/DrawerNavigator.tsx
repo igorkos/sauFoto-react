@@ -8,21 +8,22 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import {CameraNavigator} from "../screens/drawer/CameraImport";
 import {SplashScreen} from "../screens/SplashScreen";
 import {Log} from "../hooks/log";
-import {SaufotoAlbum, SaufotoMedia} from "../data/SaufotoImage";
+import {SaufotoAlbum} from "../data/watermelon/SaufotoImage";
 import {GoogleNavigator} from "../screens/drawer/GooglePhotos";
 import {useMemo} from "react";
+import {ImportObject} from "../data/watermelon/ImportObject";
 
 const Drawer = createDrawerNavigator();
 
-export const MediaContext = React.createContext< {importGallery: (items: [SaufotoMedia]) => Promise<void>, importTo: (items: [SaufotoMedia], album?: SaufotoAlbum) => Promise<void>} | null>(null);
+export const MediaContext = React.createContext< {importGallery: (items: [ImportObject]) => Promise<void>, importTo: (items: [ImportObject], album?: SaufotoAlbum) => Promise<void>} | null>(null);
 
 export function DrawerNavigator() {
     const mediaContext = useMemo(
         () => ({
-            importGallery: async (items:[SaufotoMedia]) => {
+            importGallery: async (items:[ImportObject]) => {
                 Log.debug("Import to Gallery", JSON.stringify(items))
             },
-            importTo: async (items:[SaufotoMedia], album?:SaufotoAlbum) => {
+            importTo: async (items:[ImportObject], _album?:SaufotoAlbum) => {
                 Log.debug("Import to Album")
             },
         }), [],);
@@ -41,5 +42,5 @@ export function DrawerNavigator() {
                 <Drawer.Screen name="SplashScreen" component={SplashScreen}/>
             </Drawer.Navigator>
         </MediaContext.Provider>
-    );
-};
+    )
+}

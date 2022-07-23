@@ -2,9 +2,10 @@ import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfigu
 import {ServiceTokens} from "./DataServiceConfig";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {Log} from "../hooks/log";
-import {SaufotoAlbum, SaufotoImage, SaufotoMedia, SaufotoObjectType, ServiceImportEntry} from "./SaufotoImage";
+import {SaufotoAlbum, SaufotoImage, SaufotoMedia, SaufotoObjectType, ServiceImportEntry} from "./watermelon/SaufotoImage";
 import {ThumbSize} from "../constants/Images";
 import {ServiceType} from "./ServiceType";
+import {ImportObject} from "./watermelon/ImportObject";
 
 
 export namespace SaufotoProvider {
@@ -42,6 +43,10 @@ export namespace SaufotoProvider {
 
     export async function getThumbsData(config: ServiceTokens, path: string, size: ThumbSize) {
         return path
+    }
+
+    export async function getImageData( config: ServiceTokens, object: ImportObject|SaufotoImage): Promise<string> {
+
     }
 
     export function albumId(media:SaufotoAlbum | SaufotoImage) {

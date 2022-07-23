@@ -1,14 +1,16 @@
 import * as React from "react";
 import {Log} from "../hooks/log";
-import {Dropbox, DropboxResponse, files} from "dropbox";
-import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./SaufotoImage"
+import {Dropbox, DropboxResponse, DropboxResponseError, files} from "dropbox";
+import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage"
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ServiceType} from "./ServiceType";
-import {ThumbSize} from "../constants/Images";
+import {thumbHeight, ThumbSize, thumbWith} from "../constants/Images";
 import { Image } from 'react-native';
 import {ImportObject} from "./watermelon/ImportObject";
 import {addToTable} from "./watermelon/DataSourceUtils";
+import {authorizeWith} from "./AuthorizationProvicer";
+import ImageResizer from "react-native-image-resizer";
 
 
 const okFileExtensions = Array(".jpg", ".jpeg", ".png", ".gif", ".heic")
@@ -72,12 +74,12 @@ export namespace DropboxProvider {
         return  {nextPage: null, items: [], hasMore: false }
     }
 
-    export async function getThumbsData(config: ServiceTokens, object: ImportObject, size: ThumbSize ): Promise<string> {
+    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage, size: ThumbSize ): Promise<string> {
         const dbx = await dropboxInstance(config)
         const tSize = size.replace('-','')
-        const path = object.originalUri!
+        const path = await  object.getOriginalUri()
         const ext = path.split('.').pop();
-        Log.debug("Dropbox load thumb for :" + path +  "ext: " + ext + " size: " + size )
+        Log.debug("Dropbox load thumb for :" + path +  " ext: " + ext + " size: " + tSize )
 
         if(okFileExtensions.includes('.'+ ext)) {
             return new Promise(async (resolve, reject) => {
@@ -100,7 +102,7 @@ export namespace DropboxProvider {
                 fileReaderInstance.onload = async () => {
                     const data = fileReaderInstance.result as string
                     const blobUri = data.replace('application/octet-stream', 'image/jpeg')
-                    const thumb = await object.createThumb(size, blobUri)
+                    const thumb = await (object as ImportObject).createThumb(size, blobUri)
                     //Log.debug("Get Dropbox image as data url for: '" + path + "'");
                     resolve(thumb)
                 }
@@ -114,11 +116,41 @@ export namespace DropboxProvider {
 
     }
 
+    export async function getImageData( config: ServiceTokens, object: ImportObject|SaufotoImage): Promise<string> {
+        const dbx = await dropboxInstance(config)
+        const path = await  object.getOriginalUri()
+        return new Promise(async (resolve, reject) => {
+            Log.debug("Dropbox request image data for :" + path)
+            const response = await dbx.filesDownload({path:path}).catch((err) => {
+                Log.error("Download Dropbox file error: " + err)
+                reject(err)
+            })
+
+            // @ts-ignore
+            const blob = response.result["fileBlob"]
+            const width = response.result.media_info?.metadata.dimensions.width
+            const height = response.result.media_info?.metadata.dimensions.height
+            Log.debug("Dropbox get image data for :" + path + " size:(" +width + ":" + height + ")")
+            const fileReaderInstance = new FileReader();
+            fileReaderInstance.onload = async () => {
+                const data = fileReaderInstance.result as string
+                const blobUri = data.replace('application/octet-stream', 'image/jpeg')
+                const result = await ImageResizer.createResizedImage(blobUri, width, height, 'JPEG', 100, 0)
+                //Log.debug("Get Dropbox image as data url for: '" + path + "'");
+                if(object instanceof SaufotoImage) {
+                    await object.setLocalImageFile(result.uri)
+                }
+                resolve(result.uri)
+            }
+            fileReaderInstance.readAsDataURL(blob)
+        })
+    }
+
     export async function loadAlbums(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
         return loadImages(config, root, page)
     }
 
-    export function albumId(media:ImportObject): string | null {
+    export function albumId(media:ImportObject|SaufotoImage): string | null {
         return media.originalUri === undefined ? null:media.originalUri
     }
 }

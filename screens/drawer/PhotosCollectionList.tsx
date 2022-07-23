@@ -1,13 +1,21 @@
 import {Log} from "../../hooks/log";
-import {BackHandler, Platform, SafeAreaView, StyleSheet, Switch, TouchableOpacity} from "react-native";
+import {
+    BackHandler,
+    FlatList,
+    Platform,
+    SafeAreaView,
+    StyleSheet,
+    Switch,
+    TouchableOpacity
+} from "react-native";
 import {ProgressCircle, Text, View} from "../../components/Themed";
 import * as React from "react";
 import {useCallback, useEffect, useRef, useState} from "react";
 import {theme} from "../../constants/themes";
 import {DataSourceProvider, LoadImagesResponse} from "../../data/DataSourceProvider";
-import {SaufotoObjectType,} from "../../data/SaufotoImage";
+import {SaufotoImage, SaufotoObjectType,} from "../../data/watermelon/SaufotoImage";
 import {ServiceType} from "../../data/ServiceType";
-import {FlatListItemSizes} from "../../constants/Layout";
+import {FlatListItemSizes, screenWidth} from "../../constants/Layout";
 import {authorizeWith} from "../../data/AuthorizationProvicer";
 import { SpeedyList, SpeedyListItemMeta, SpeedyListItemRenderer } from "react-native-speedy-list"
 import {database} from "../../index";
@@ -15,11 +23,15 @@ import {ImportObject} from "../../data/watermelon/ImportObject";
 import CollectionListItem from "../CollectionListItem";
 import {Subscription} from "rxjs";
 import {Q} from "@nozbe/watermelondb";
-import {useFocusEffect, useIsFocused} from "@react-navigation/native";
+import {useIsFocused} from "@react-navigation/native";
+import {ImportProvider} from "../../data/ImportProvider";
+import Carousel from "react-native-snap-carousel";
+import CollectionPreviewItem from "../CollectionPreviewItem";
+
 
 const PubSub = require('pubsub-js');
 
-export const photosListView = (navigation: { push: (arg0: string, arg1: { albumId: string|null; first?: any; }) => void; goBack: () => void; }, route: { params: { albumId: string; first: number; } | undefined; }, type: ServiceType, albums: boolean, isImport: boolean, isPreview: boolean = false) => {
+export const photosListView = (navigation: { push: (arg0: string, arg1: { albumId: string|null; first?: number; }) => void; goBack: () => void; }, route: { params: { albumId: string; first: number; } | undefined; }, type: ServiceType, albums: boolean, isImport: boolean, isPreview: boolean = false) => {
     const [isLoading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [albumsPreview, setAlbumsPreview] = useState(true);
@@ -28,8 +40,11 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     const [visible, setVisible] = useState(false);
     const [token, setToken] = useState<string | null>(null);
     const [root] = useState<string | null>(route.params !== undefined ? (route.params.albumId === undefined ? null : route.params.albumId) : null);
-    const [objects, setObjects] = useState<ImportObject[]>([])
-    const [subscription, setSubscription] = useState<Subscription | null>(null)
+    const [objects, setObjects] = useState<ImportObject[] | SaufotoImage[]>([])
+    const [_, setSubscription] = useState<Subscription | null>(null)
+    const [indexSelected, setIndexSelected] = useState(0);
+    const carouselRef = useRef<any>();
+    const flatListRef = useRef<any>();
 
     const isFocused = useIsFocused();
 
@@ -76,30 +91,39 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
               } else {
                   return await DataSourceProvider.loadImages( type, root, null)
               }
+         }else{
+             setHasMore(false)
          }
     }
 
+    const importAdd = async (entries: ImportObject[]) => {
+        await ImportProvider.addEntries(entries)
+    }
+
+    const selectAll = async (entries: ImportObject[]) => {
+        for( let entry of entries ) {
+            await entry.setSelected(true)
+        }
+    }
+
     useEffect(() => {
+
         switch (events) {
+            case 'selectAll':{
+                Log.debug("PhotosListView -> select all")
+                selectAll(objects as ImportObject[]).then(() => {
+                    Log.debug("All selected")
+                } )
+                break
+            }
             case 'importToGallery' : {
-                fetchData().then((response) => {
-                    // Log.debug("Load " + type + "images :" + JSON.stringify(images))
-                    updateDataSource(response)
-                }).catch((err) => {
-                    Log.error("Loading " + type + "images error: " + err)
-                })
-              /*  const toImport = dataSource.filter((value) => {
+                const toImport = (objects as ImportObject[]).filter((value) => {
                     return value.selected
                 })
                 Log.debug("PhotosListView -> importToGallery selected" + toImport)
-                realm.write(() => {
-                    toImport.forEach((item) =>{
-                        const type = item.type === 'image' ? 'SaufotoImage':'SaufotoAlbum'
-                        item.selected = false
-                        item.update = 'pending'
-                        realm.create(type,item)
-                    })
-                })*/
+                importAdd(toImport).then(() => {
+                    Log.debug("Added to import queue")
+                })
                 break;
             }
             case 'importToAlbum': {
@@ -139,6 +163,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
                         Log.debug("Table update " + type + "images count: " + value.length)
                         setObjects(value)
                     }})
+                setSubscription(objects)
                 break;
             }
             case ServiceType.Camera: {
@@ -153,7 +178,11 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
                 break;
             }
             case ServiceType.Saufoto: {
-                //objects = albums? useQuery(SaufotoAlbum):useQuery(SaufotoImage);
+                const objects = await database.get<ImportObject>('SaufotoImage').query().observe().subscribe({ next:(value) => {
+                        Log.debug("Table update " + type + "images count: " + value.length)
+                        setObjects(value)
+                    }})
+                setSubscription(objects)
                 break;
             }
             default: {
@@ -173,11 +202,16 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
         })
     }, []);
 
-    const onItemSelected = (item: ImportObject, index: number) => {
-        if(!isImport) {
-            navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item), first:index})
-        } else if(albums) {
-            navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item)})
+    const onItemSelected = (item: ImportObject|SaufotoImage, index: number) => {
+        if(item instanceof SaufotoImage ) {
+            const albumId = route.params?.albumId != null ? route.params?.albumId:null
+            navigation.push('PreviewImages', {albumId: albumId, first:index})
+        } else {
+            if(!isImport) {
+                navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item), first:index})
+            } else if(albums) {
+                navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item)})
+            }
         }
     };
 
@@ -191,11 +225,12 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
 
 
     useEffect(() => {
-        const auth = async () => {
-            await authorizeWith(type)
+        const auth = async (service: ServiceType) => {
+            await authorizeWith(service)
         }
-        if (error === 'Not Authorized') {
-            auth().then(() => {
+
+        if (error !== null && error.reason === 'Not Authorized') {
+            auth(error.provider).then(() => {
                 setError(null)
             }).catch((err) => {
                 Log.error("Authorize " + type + " error: " + err)
@@ -209,10 +244,35 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
         }
     }
 
+    const onCarouselSnap = (index:number) => {
+        setIndexSelected(index);
+        const THUMB_SIZE = FlatListItemSizes[type].small.width
+        if (indexSelected * (THUMB_SIZE + 10) - THUMB_SIZE / 2 > screenWidth / 2) {
+           flatListRef?.current?.scrollToOffset({
+             offset: indexSelected * (THUMB_SIZE + 10) - screenWidth / 2 + THUMB_SIZE / 2,
+             animated: true,
+           });
+         } else {
+           flatListRef?.current?.scrollToOffset({
+             offset: 0,
+             animated: true,
+           });
+        }
+    }
     // @ts-ignore
-    const renderItem = useCallback<SpeedyListItemRenderer<ImportObject>>((props ) => {
-        return <CollectionListItem  item={props.item} mode={albumsPreview} onSelected={onItemSelected} dataProvider={type} index={props.index} onError={onError} debug={true}/>
-        },[albumsPreview])
+    const renderItem = useCallback<SpeedyListItemRenderer<ImportObjec|SaufotoImaget>>((props ) => {
+        return <CollectionListItem  item={props.item} mode={albumsPreview} onSelected={onItemSelected} dataProvider={type} index={props.index} onError={onError} debug={true} small={false}/>
+    },[albumsPreview])
+
+    const renderFlatItem = useCallback((props: { item: ImportObject | SaufotoImage; index: any; })  => {
+        const isSelected = props.index === indexSelected
+        //Log.debug("selected " + props.index + " selected " + indexSelected + " " + isSelected)
+        return <CollectionListItem  item={props.item} mode={albumsPreview} onSelected={(item: ImportObject|SaufotoImage, index: number) => {carouselRef?.current?.snapToItem(index)}} dataProvider={type} index={props.index} onError={onError} debug={true} small={true} isSelected={ isSelected }/>
+    },[indexSelected])
+
+    const renderCarousel = useCallback((props: { item: SaufotoImage; index: any; })  => {
+        return <CollectionPreviewItem  item={props.item}  dataProvider={type} index={props.index} onError={onError} debug={true} uri={null}/>
+    },[indexSelected])
 
 
     const height = albums ? FlatListItemSizes[type].album.layout : FlatListItemSizes[type].image.layout
@@ -237,10 +297,12 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
         }
     };
 
-    return (
+    // @ts-ignore
+    return !isPreview ? (
         <SafeAreaView style={styles.container}>
                 <SpeedyList<ImportObject>
                     scrollViewProps={{style:styles.container}}
+                    // @ts-ignore
                     items={objects}
                     itemRenderer={renderItem}
                     itemKey={keyItem}
@@ -252,11 +314,43 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
                     footer={footer(hasMore)}
                 />
                 <AlbumsPreview albums={albums} callback={toggleSwitch} state={albumsPreview} isImport={isImport}/>
-        </SafeAreaView>)
+        </SafeAreaView>) : (<SafeAreaView style={styles.container}>
+                <Carousel
+                    slideStyle={{ width: screenWidth }}
+                    ref={carouselRef}
+                    layout='default'
+                    // @ts-ignore
+                    data={objects as SaufotoImage[]}
+                    firstItem={(route.params === undefined) ? 0:route.params.first }
+                    initialScrollIndex={(route.params === undefined) ? 0:route.params.first }
+                    lockScrollWhileSnapping={true}
+                    getItemLayout={(data, index) => (
+                        {length: screenWidth, offset: screenWidth * index, index}
+                    )}
+                    onSnapToItem={(index) => onCarouselSnap(index)}
+                    sliderWidth={screenWidth}
+                    itemWidth={screenWidth}
+                    renderItem={renderCarousel}
+                />
+            <FlatList
+                ref={flatListRef}
+                horizontal={true}
+                data={objects as SaufotoImage[]}
+                style={{ position: 'absolute', bottom: 0 }}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                    paddingHorizontal: 1
+                }}
+                keyExtractor={(item) => item.id}
+                // @ts-ignore
+                renderItem={renderFlatItem}
+            />
+        </SafeAreaView>
+    )
 }
 
 /*
-
+<StatusBar hidden={true} />
 
  */
 const AlbumsPreview = (props: { state: boolean | undefined; albums: any; isImport: any; callback: (arg0: boolean) => void; }) => {

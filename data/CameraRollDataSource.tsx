@@ -5,18 +5,15 @@ import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfigu
 import {PermissionStatus} from "expo-modules-core/src/PermissionsInterface";
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
-import {SaufotoAlbum, SaufotoImage, SaufotoObjectType, ServiceImportCamera, ServiceImportEntry} from "./SaufotoImage";
+import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ServiceType} from "./ServiceType";
-import {SaufotoProvider} from "./SaufotoDataSource";
-import {database} from "../index";
 import {ImportObject} from "./watermelon/ImportObject";
-import {Q} from "@nozbe/watermelondb";
 import {addToTable} from "./watermelon/DataSourceUtils";
 
 export namespace CameraProvider {
 
-    export async function authorize(config: AuthConfiguration): Promise<AuthorizeResult> {
+    export async function authorize(_config: AuthConfiguration): Promise<AuthorizeResult> {
         const result = await MediaLibrary.requestPermissionsAsync()
         const expire = result.expires === 'never' ? new Date(94670778000002): new Date(result.expires)
         if (result.status !==  PermissionStatus.GRANTED) {
@@ -38,8 +35,8 @@ export namespace CameraProvider {
         };
     }
 
-    export function revoke(config: BaseAuthConfiguration, revokeConfig: RevokeConfiguration): Promise<void> {
-        return new Promise((resolve, reject) => {
+    export function revoke(_config: BaseAuthConfiguration, _revokeConfig: RevokeConfiguration): Promise<void> {
+        return new Promise((resolve) => {
             resolve()
         })
     }
@@ -59,7 +56,7 @@ export namespace CameraProvider {
             Log.debug("Loading Camera Roll images: " + photosTemp.assets.length)
 
             count += await addToTable('ImportObject', photosTemp.assets, ServiceType.Camera, (root === null ? '' : root),
-                (item: any) => { return SaufotoObjectType.Image }, 'filename', 'uri')
+                (_item: any) => { return SaufotoObjectType.Image }, 'filename', 'uri')
 
             Log.debug("Added Camera roll  entries: " + count)
 
@@ -71,16 +68,20 @@ export namespace CameraProvider {
         return {nextPage: null, items: [], hasMore: false }
     }
 
-    export async function getThumbsData(config: ServiceTokens, object: ImportObject, size: ThumbSize): Promise<string> {
-        const thumb = await object.createThumb(size, object.originalUri!)
-        return thumb
+    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage, size: ThumbSize): Promise<string> {
+        const uri = await object.getOriginalUri()
+        return await (object as ImportObject).createThumb(size, uri)
     }
 
-    export async function loadAlbums(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+    export async function getImageData( config: ServiceTokens, object: ImportObject|SaufotoImage): Promise<string> {
+        return  object.getOriginalUri()
+    }
+
+    export async function loadAlbums(_config: ServiceTokens, _root: string | null, _page: string | null): Promise<LoadImagesResponse> {
         return {nextPage: null, items: [], hasMore:false}
     }
 
-    export function albumId( media:ImportObject):  string | null{
-        return media.originId
+    export function albumId( media:ImportObject|SaufotoImage):  string | null{
+        return (media as ImportObject).originId
     }
 }
