@@ -8,6 +8,7 @@ import { StyleSheet } from 'react-native';
 import {Caption, Title, Avatar, Drawer} from "react-native-paper";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {AuthContext} from "../components/context";
+import {database} from "../index";
 
 // @ts-ignore
 const SaufotoDrawer = (props) => {
@@ -83,6 +84,17 @@ const SaufotoDrawer = (props) => {
             </DrawerContentScrollView>
             <Drawer.Section style={styles.bottomDrawerSection}>
                 <DrawerItem
+                    label="Reset data"
+                    icon={({color, size}) => (
+                        <Icon name="exit-to-app" color={color} size={size} />
+                    )}
+                    onPress={async () => {
+                        database.write(async () => {
+                            await database.unsafeResetDatabase()
+                        })
+                    }}
+                />
+                <DrawerItem
                     label="Sign Out"
                     icon={({color, size}) => (
                         <Icon name="exit-to-app" color={color} size={size} />
@@ -91,6 +103,7 @@ const SaufotoDrawer = (props) => {
                         signOut();
                     }}
                 />
+
             </Drawer.Section>
         </View>
     );

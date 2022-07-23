@@ -37,8 +37,8 @@ export function RootNavigator({navigation}) {
                 }}/>
             </Stack.Group>
             <Stack.Group screenOptions={{presentation: 'modal'}}>
-                <Stack.Screen name="SaufotoAlbumImages" component={SaufotoGalleryPreviewScreen} options={{
-                    headerShown: false,
+                <Stack.Screen name="PreviewImages" component={SaufotoGalleryPreviewScreen} options={{
+                    headerShown: true,
                     title: "",
                     headerStyle: {backgroundColor: theme.colors.headerBackground,},
                     headerTintColor: theme.colors.text,

@@ -19,6 +19,9 @@ import com.akellolcc.saufoto.newarchitecture.MainApplicationReactNativeHost;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import com.nozbe.watermelondb.jsi.WatermelonDBJSIPackage;
+import com.facebook.react.bridge.JSIModulePackage;
+
 public class MainApplication extends Application implements ReactApplication {
 
     private final ReactNativeHost mReactNativeHost =
@@ -41,6 +44,11 @@ public class MainApplication extends Application implements ReactApplication {
                 protected String getJSMainModuleName() {
                     return "index";
                 }
+
+               /* @Override
+                 protected JSIModulePackage getJSIModulePackage() {
+                   return new WatermelonDBJSIPackage();
+                 }*/
             });
 
     private final ReactNativeHost mNewArchitectureNativeHost =

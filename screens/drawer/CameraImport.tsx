@@ -11,7 +11,8 @@ const Stack = createNativeStackNavigator();
 export function CameraNavigator({navigation}) {
     return (
         <Stack.Navigator>
-            <Stack.Screen  name="Camera" component={CameraScreen} options={{ headerShown: true,
+            <Stack.Screen  name="CameraImport" component={CameraScreen} options={{ headerShown: true,
+                title:'Camera',
                 headerStyle: {backgroundColor: theme.colors.headerBackground,},
                 headerTintColor: theme.colors.text,
                 headerLeft: () => (

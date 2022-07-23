@@ -9,10 +9,17 @@
 import * as React from 'react';
 import 'localstorage-polyfill';
 import Navigation from './navigation';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import {useEffect} from "react";
+import {getPlaceholderUri} from "./constants/Images";
 
 export default function App() {
+    useEffect( () => {
+        getPlaceholderUri().then(r => {})
+    })
   return (
-      <Navigation/>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+                <Navigation/>
+          </GestureHandlerRootView>
   );
 };
-

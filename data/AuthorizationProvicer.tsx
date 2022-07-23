@@ -15,7 +15,7 @@ function processAuthResponse(type: ServiceType, response: AuthorizeResult) : Ser
     }
 }
 
-async function isAuthorized(type: ServiceType) {
+export async function isAuthorized(type: ServiceType) {
     const token = await Preferences.getItem(type+'Token')
     if(token != null) {
         let config = JSON.parse(token)

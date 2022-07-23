@@ -1,4 +1,4 @@
-import {TouchableOpacity, View} from "react-native";
+import {StyleSheet, TouchableOpacity, View} from "react-native";
 import {HeaderBackButton} from "@react-navigation/elements";
 import {Log} from "../../hooks/log";
 import * as React from "react";
@@ -39,8 +39,16 @@ export const NavigationDrawerRightImportImages = (props: { type: string; }) => {
         hideMenu()
         PubSub.publish(event, 'importToAlbum');
     }
+    const selectAll = () => {
+        PubSub.publish(event, 'selectAll');
+    }
     return (
-        <View  style={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+        <View  style={{ height: '100%', alignItems: 'center', justifyContent: 'center', flexDirection: 'row',}}>
+            <TouchableOpacity
+                style={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}
+                onPress={() => {selectAll()}}>
+                <Text style={{...styles.caption, fontWeight:'bold'}} >Select All</Text>
+            </TouchableOpacity>
             <SMenu visible={visible}
                    anchor={ <Icon name={'menu'} color={theme.colors.text} size={25} onPress={showMenu}/>  }
                    onRequestClose={hideMenu}>
@@ -65,3 +73,18 @@ export const NavigationDrawerLeft = (props: { navigationProps: { toggleDrawer: (
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    caption: {
+        flexDirection: 'row',
+        fontSize: 14,
+        lineHeight: 14,
+        numberOfLines: 1,
+        ellipsizeMode: 'tail',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    menu: {
+        flexDirection: 'row',
+    },
+})

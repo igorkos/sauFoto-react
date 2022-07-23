@@ -1,8 +1,11 @@
 import {Log} from "../hooks/log";
-import {SaufotoAlbum, saufotoAlbum, saufotoImage, SaufotoImage} from "./SaufotoImage";
+import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
+import {ServiceType} from "./ServiceType";
+import {ImportObject} from "./watermelon/ImportObject";
+import {addToTable} from "./watermelon/DataSourceUtils";
 
 export namespace GoogleProvider {
 
@@ -49,17 +52,20 @@ export namespace GoogleProvider {
 
     interface GoogleAlbum {
         id: string,
-        description: string,
+        title: string,
         productUrl: string,
-        baseUrl: string,
-        mimeType: string,
-        mediaMetadata: GoogleMediaMetadata,
-        contributorInfo: GoogleContributorInfo,
-        filename: string
+        mediaItemsCount: string,
+        coverPhotoBaseUrl: string,
+        coverPhotoMediaItemId: string,
     }
 
     interface GoogleMediaListResponse {
         mediaItems: [GoogleMediaItem],
+        nextPageToken: string
+    }
+
+    interface GoogleAlbumsListResponse {
+        albums: [GoogleAlbum],
         nextPageToken: string
     }
 
@@ -101,7 +107,7 @@ export namespace GoogleProvider {
     }
 
     function loadImagesRequest(config: ServiceTokens, page: string | null){
-        let request = GOOGLE_MEDIA_ITEMS + "?pageSize=50"
+        let request = GOOGLE_MEDIA_ITEMS + "?pageSize=100"
         if( page !== null ) {
             request = request + '&pageToken=' + page
         }
@@ -115,88 +121,136 @@ export namespace GoogleProvider {
         }}
     }
 
-    export async function loadImages(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
-        let request = root !== null ?  albumImagesRequest(config, root, page):loadImagesRequest(config, page)
-        //Log.debug("Load google items:" + JSON.stringify(request))
+    function getImageRequest(config: ServiceTokens, id: string){
+        let request = GOOGLE_MEDIA_ITEMS + "/" + id
+        return {uri: request, params: {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + config.accessToken
+                }
+            }}
+    }
 
-        const response = await fetch(request.uri, request.params).then((response) => {
+    async function getImage(config: ServiceTokens, id: string): Promise<GoogleMediaItem> {
+        let request = getImageRequest(config, id)
+        return await fetch(request.uri, request.params).then((response) => {
                 if (response.ok) {
                     return response.json()
                 } else {
-                    Log.error("Load images error", response.body)
+                    Log.error("Load image error", response.body)
                     return null
                 }
             }
         )
+    }
 
-        if (response === null) {
-            return new Promise((resolve, reject) => {
-                reject("Google images load error")
-            })
+    export async function loadImages(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+        let hasMore = true
+        let nextPage = page
+        let count = 0
+
+        Log.debug("Google items load start")
+
+        while (hasMore) {
+            let request = root !== null ? albumImagesRequest(config, root, nextPage) : loadImagesRequest(config, nextPage)
+            //Log.debug("Load google items:" + JSON.stringify(request))
+
+            const response: GoogleMediaListResponse = await fetch(request.uri, request.params).then((response) => {
+                    if (response.ok) {
+                        return response.json()
+                    } else {
+                        Log.error("Load images error", response.body)
+                        return null
+                    }
+                }
+            )
+
+            if (response === null) {
+                return new Promise((resolve, reject) => {
+                    reject("Google images load error")
+                })
+            }
+
+            if (response.mediaItems === undefined) {
+                return new Promise((resolve) => {
+                    resolve({nextPage: null, items: [], hasMore: false})
+                })
+            }
+
+            count += await addToTable('ImportObject', response.mediaItems, ServiceType.Google, (root === null ? '' : root),
+                (item: any) => { return SaufotoObjectType.Image }, 'filename', 'baseUrl')
+
+            Log.debug("Added Google  entries: " + count)
+
+            hasMore = response.nextPageToken !== undefined
+            nextPage = response.nextPageToken
         }
-
-        if(response.mediaItems === undefined) {
-           return  new Promise((resolve, reject) => {
-                resolve({nextPage: null, items: [], hasMore: false })
-            })
-        }
-
-        Log.debug("Load google items get:" +response.mediaItems.length)
-        const items = Array.apply(null, Array(response.mediaItems.length)).map((v, i) => {
-            let entry = response.mediaItems[i]
-            let object = saufotoImage()
-            object.id = entry.id
-            object.title = entry.filename
-            object.originalUri = entry.baseUrl
-            return object
-        })
-        return new Promise((resolve, reject) => {
-            resolve({nextPage: response.nextPageToken, items: items, hasMore: (response.nextPageToken !== undefined) })
-        })
+        Log.debug("Google items load complete")
+        return {nextPage: null, items: [], hasMore: false }
     }
 
     const GOOGLE_ALBUMS_ITEMS = 'https://photoslibrary.googleapis.com/v1/albums'
 
-    export async function loadAlbums(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
-        let request = GOOGLE_ALBUMS_ITEMS + "?pageSize=50"
-        if( page !== null ) {
-            request = request + '&pageToken=' + page
-        }
-        Log.debug("Load google albums:" + request)
-        const response = await fetch(request, {
-            method: 'GET',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                Authorization: 'Bearer ' + config.accessToken
+    export async function loadAlbums( config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+        let hasMore = true
+        let nextPage = page
+        let count = 0
+
+        Log.debug("Google albums load start")
+
+        while (hasMore) {
+            let request = GOOGLE_ALBUMS_ITEMS + "?pageSize=50"
+            if( page !== null ) {
+                request = request + '&pageToken=' + page
             }
-        }).then((response) => {
-                if (response.ok) {
-                    return response.json()
-                } else {
-                    return null
+            Log.debug("Load google albums:" + request)
+            const response: GoogleAlbumsListResponse = await fetch(request, {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + config.accessToken
                 }
-            }
-        )
-        const items = Array.apply(null, Array(response.albums.length)).map((v, i) => {
-            let entry = response.albums[i]
-            let object = saufotoAlbum()
-            object.id = entry.id
-            object.title = entry.title
-            object.originalUri = entry.coverPhotoBaseUrl
-            object.count = entry.mediaItemsCount
-            return object
-        })
-        return new Promise((resolve, reject) => {
-            resolve({nextPage: response.nextPageToken, items: items, hasMore: (response.nextPageToken !== undefined) })
-        })
+            }).then((response) => {
+                    if (response.ok) {
+                        return response.json()
+                    } else {
+                        return null
+                    }
+                }
+            )
+
+            count += await addToTable('ImportObject', response.albums, ServiceType.Google, (root === null ? '' : root),
+                (item: any) => { return SaufotoObjectType.Album }, 'title', 'coverPhotoBaseUrl', 'coverPhotoMediaItemId', 'mediaItemsCount')
+
+            Log.debug("Added Google  entries: " + count)
+
+            hasMore = response.nextPageToken !== undefined
+            nextPage = response.nextPageToken
+        }
+        Log.debug("Google albums load complete")
+        return {nextPage: nextPage, items: [], hasMore:false }
     }
 
-    export async function getThumbsData(config: ServiceTokens, path: string, size: ThumbSize) {
-        return path + '=' + size
+    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage, size: ThumbSize): Promise<string> {
+        const source = object.originalUri
+        let uri = await (object as ImportObject).createThumb(size,  source + '=' + size ).catch(async () =>{
+            return null
+        })
+        if( uri === null) {
+            const image = await getImage(config, (object as ImportObject).originId)
+            uri =  await (object as ImportObject).createThumb(size, image.baseUrl + '=' + size)
+        }
+        return uri
     }
 
-    export function albumId(media:SaufotoAlbum | SaufotoImage) {
-        return media.id
+    export async function getImageData( config: ServiceTokens, object: ImportObject|SaufotoImage): Promise<string> {
+
+    }
+
+    export function albumId(media:ImportObject|SaufotoImage) : string | null {
+        return (media as ImportObject).originId
     }
 }

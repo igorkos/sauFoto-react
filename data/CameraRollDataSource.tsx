@@ -5,13 +5,15 @@ import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfigu
 import {PermissionStatus} from "expo-modules-core/src/PermissionsInterface";
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
-import {SaufotoAlbum, SaufotoImage, saufotoImage} from "./SaufotoImage";
+import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
 import {ServiceTokens} from "./DataServiceConfig";
-
+import {ServiceType} from "./ServiceType";
+import {ImportObject} from "./watermelon/ImportObject";
+import {addToTable} from "./watermelon/DataSourceUtils";
 
 export namespace CameraProvider {
 
-    export async function authorize(config: AuthConfiguration): Promise<AuthorizeResult> {
+    export async function authorize(_config: AuthConfiguration): Promise<AuthorizeResult> {
         const result = await MediaLibrary.requestPermissionsAsync()
         const expire = result.expires === 'never' ? new Date(94670778000002): new Date(result.expires)
         if (result.status !==  PermissionStatus.GRANTED) {
@@ -33,39 +35,53 @@ export namespace CameraProvider {
         };
     }
 
-    export function revoke(config: BaseAuthConfiguration, revokeConfig: RevokeConfiguration): Promise<void> {
-        return new Promise((resolve, reject) => {
+    export function revoke(_config: BaseAuthConfiguration, _revokeConfig: RevokeConfiguration): Promise<void> {
+        return new Promise((resolve) => {
             resolve()
         })
     }
 
     export async function loadImages(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
+        let hasMore = true
+        let nextPage = page
+        let count = 0
+
+        Log.debug("Camera roll items load start")
         const album = await MediaLibrary.getAlbumAsync('Camera')
-        const options = page === null ? {album: album, first:50}:{album: album, first:50, after:page}
-        const photosTemp = await MediaLibrary.getAssetsAsync(options)
-        Log.debug("Loading Camera Roll images:" + photosTemp)
-        const items =  Array.apply(null, Array(photosTemp.assets.length)).map((v, i) => {
-            const object = saufotoImage()
-            object.id = photosTemp.assets[i].id
-            object.title = photosTemp.assets[i].filename
-            object.originalUri = photosTemp.assets[i].uri
-            return object
-        })
 
-        return {nextPage: items[items.length - 1].id, items: items, hasMore: !(photosTemp.assets.length < 50)}
+        while (hasMore) {
+            const options = nextPage === null ? {album: album, first:50}:{album: album, first:50, after:nextPage}
+            const photosTemp = await MediaLibrary.getAssetsAsync(options)
+
+            Log.debug("Loading Camera Roll images: " + photosTemp.assets.length)
+
+            count += await addToTable('ImportObject', photosTemp.assets, ServiceType.Camera, (root === null ? '' : root),
+                (_item: any) => { return SaufotoObjectType.Image }, 'filename', 'uri')
+
+            Log.debug("Added Camera roll  entries: " + count)
+
+
+            hasMore = !(photosTemp.assets.length < 50)
+            nextPage = photosTemp.assets[photosTemp.assets.length - 1].id
+        }
+        Log.debug("Camera roll items load complete")
+        return {nextPage: null, items: [], hasMore: false }
     }
 
-    export async function getThumbsData(config: ServiceTokens, path: string, size: ThumbSize) {
-        return path
+    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage, size: ThumbSize): Promise<string> {
+        const uri = await object.getOriginalUri()
+        return await (object as ImportObject).createThumb(size, uri)
     }
 
-    export async function loadAlbums(config: ServiceTokens, root: string | null, page: string | null): Promise<LoadImagesResponse> {
-        return new Promise((resolve, reject) => {
-            resolve({nextPage: null, items: [], hasMore:false})
-        })
+    export async function getImageData( config: ServiceTokens, object: ImportObject|SaufotoImage): Promise<string> {
+        return  object.getOriginalUri()
     }
 
-    export function albumId(media:SaufotoAlbum | SaufotoImage) {
-        return media.id
+    export async function loadAlbums(_config: ServiceTokens, _root: string | null, _page: string | null): Promise<LoadImagesResponse> {
+        return {nextPage: null, items: [], hasMore:false}
+    }
+
+    export function albumId( media:ImportObject|SaufotoImage):  string | null{
+        return (media as ImportObject).originId
     }
 }

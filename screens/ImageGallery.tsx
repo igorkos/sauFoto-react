@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { RootTabScreenProps } from './drawer/types';
 import {photosListView} from "./drawer/PhotosCollectionList";
 import {ServiceType} from "../data/ServiceType";
 import {theme} from "../constants/themes";
@@ -24,10 +23,16 @@ export function GalleryImagesNavigator({navigation}) {
             </Stack.Group>
         </Stack.Navigator>
     );
+
 }
+
+/*
+<Stack.Group screenOptions={{presentation: 'modal', headerShown: true,}}>
+
+ */
 // @ts-ignore
 function SaufotoGalleryScreen({ navigation, route }){
-    return photosListView(navigation, route, ServiceType.Saufoto, false, false)
+    return  photosListView(navigation, route, ServiceType.Saufoto, false, false, false)
 }
 // @ts-ignore
 export function SaufotoGalleryPreviewScreen({ navigation, route }) {
