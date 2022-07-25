@@ -1,5 +1,5 @@
 import {Model} from "@nozbe/watermelondb";
-import {field, reader, text, writer} from '@nozbe/watermelondb/decorators'
+import {date, field, reader, text, writer} from '@nozbe/watermelondb/decorators'
 import {placeholderUri, ThumbData, thumbHeight, ThumbSize, thumbWith} from "../../constants/Images";
 import ImageResizer from "react-native-image-resizer";
 import {ServiceType} from "../ServiceType";
@@ -27,7 +27,7 @@ export class ImportObject extends Model {
             return thumbs
         }
         switch (this.origin) {
-            case ServiceType.Google: return this.originalUri + '=' + ThumbSize.THUMB_128
+            case ServiceType.Google: return null
             case ServiceType.Camera: return null
             case ServiceType.Dropbox: {
                 if(this.type === SaufotoObjectType.Image) return null
@@ -75,4 +75,15 @@ export class ImportObject extends Model {
     @reader async getOriginalUri(): Promise<string> {
         return this.originalUri
     }
+
+    toString() :string {
+        return "ImportObject (" + this.originId + "): " + JSON.stringify(this._raw)
+    }
+}
+
+ export async function createThumb(size:ThumbSize, uri:string): Promise<string> {
+    const result = await ImageResizer.createResizedImage(uri, thumbWith(size), thumbHeight(size), 'JPEG', 100, 0)
+    const thumbs = Array()
+    thumbs.push({size:size, uri:result.uri})
+    return JSON.stringify(thumbs)
 }

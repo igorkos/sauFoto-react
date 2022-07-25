@@ -29,7 +29,7 @@ export const NavigationDrawerRightImportImages = (props: { type: string; }) => {
     const [visible, setVisible] = useState(false);
     const hideMenu = () => {setVisible(false);}
     const showMenu = () => setVisible(true);
-    const event = props.type + 'Menu'
+    const event ='NavigationDrawerEvents'
     const importToGallery = () => {
         hideMenu()
         Log.debug("'Add to Gallery' pressed")
@@ -37,9 +37,11 @@ export const NavigationDrawerRightImportImages = (props: { type: string; }) => {
     }
     const importToAlbum = () => {
         hideMenu()
+        Log.debug("'Add to Album' pressed")
         PubSub.publish(event, 'importToAlbum');
     }
     const selectAll = () => {
+        Log.debug("'Select All' pressed")
         PubSub.publish(event, 'selectAll');
     }
     return (

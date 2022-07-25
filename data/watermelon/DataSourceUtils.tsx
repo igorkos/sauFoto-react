@@ -2,10 +2,12 @@ import {SaufotoObjectType, SaufotoSyncAction} from "./SaufotoImage";
 import {Q} from "@nozbe/watermelondb";
 import {ServiceType} from "../ServiceType";
 import {database} from "../../index";
-import {ImportObject} from "./ImportObject";
-import {ThumbData, ThumbSize} from "../../constants/Images";
+import {createThumb, ImportObject} from "./ImportObject";
+import {ThumbData, thumbHeight, ThumbSize, thumbWith} from "../../constants/Images";
+import ImageResizer from "react-native-image-resizer";
 
-export async function addToTable(table: string, list: Array<any>,  origin: ServiceType, root: string, type: (item: any) => string, title: string, uri: string, keyItem?: string, count?: string ) {
+export async function addToTable(table: string, list: Array<any>,  origin: ServiceType, root: string, type: (item: any) => string,
+                                 title: string, uri: string, fetchThumb?:string, thumbSize?:ThumbSize, keyItem?: string, count?: string ) {
 
     const collection = database.get<ImportObject>(table)
 
@@ -13,22 +15,28 @@ export async function addToTable(table: string, list: Array<any>,  origin: Servi
     for( let value of list) {
         const find =  await collection.query(
             Q.where('origin', origin),
-            // @ts-ignore
             Q.where('originId', value.id),
             Q.where('parentId', root)).fetch()
         if( find.length == 0) {
-             const entry = collection.prepareCreate(entry => {
+            const thumbs = fetchThumb !== undefined ? (await createThumb(thumbSize === undefined ? ThumbSize.THUMB_128:thumbSize, value[fetchThumb])):undefined
+            const entry = collection.prepareCreate(entry => {
                 entry.type = type(value)
                 entry.origin = origin
-                // @ts-ignore
                 entry.originId = value.id
                 entry.title = value[title]
                 entry.originalUri = value[uri] as string
                 entry.parentId = root
                 entry.syncOp = SaufotoSyncAction.None
-                entry.keyItemId = keyItem === undefined ? null:value[keyItem]
-                entry.count = count === undefined ? null:value[count]
+                if(keyItem !== undefined ) {
+                    entry.keyItemId = value[keyItem]
+                }
+                if(count !== undefined ) {
+                    entry.count = value[count]
+                }
                 entry.selected = false
+                if( thumbs !== undefined ) {
+                    entry.thumbs = thumbs
+                }
             })
             newItems.push(entry)
         }

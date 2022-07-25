@@ -1,11 +1,13 @@
 import {Log} from "../hooks/log";
-import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
+import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
 import {ThumbSize} from "../constants/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ServiceType} from "./ServiceType";
 import {ImportObject} from "./watermelon/ImportObject";
 import {addToTable} from "./watermelon/DataSourceUtils";
+import {cacheImage} from "../utils/FileUtils";
+import {Preferences} from "./PreferenceStorage";
 
 export namespace GoogleProvider {
 
@@ -133,13 +135,61 @@ export namespace GoogleProvider {
             }}
     }
 
+    function getImagesSearch(config: ServiceTokens, endDate: string , page:string | null){
+        let request = GOOGLE_MEDIA_ITEMS + ":search"
+        let body
+        const start = new Date()
+        const end = new Date(endDate)
+        const filter = {
+            dateFilter:{
+                ranges:{
+                    startDate: {
+                        year: start.getFullYear(),
+                            month: start.getMonth(),
+                            day: start.getDay()
+                    },
+                    endDate:{
+                        year: end.getFullYear(),
+                            month: end.getMonth(),
+                            day: end.getDay()
+                    }
+                }
+            }
+        }
+        if(page === null ) {
+            body = JSON.stringify({
+                pageSize: 50,
+                filters:{
+                    dateFilter:{filter}
+                }
+            })
+        } else {
+            body = JSON.stringify({
+                pageSize: 50,
+                pageToken:page,
+                filters:{
+                    dateFilter:{filter}
+                }
+            })
+        }
+        return {uri: request, params: {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + config.accessToken
+                },
+                body: body
+            }}
+    }
+
     async function getImage(config: ServiceTokens, id: string): Promise<GoogleMediaItem> {
         let request = getImageRequest(config, id)
         return await fetch(request.uri, request.params).then((response) => {
                 if (response.ok) {
                     return response.json()
                 } else {
-                    Log.error("Load image error", response.body)
+                    Log.error("Load image error:", response.status)
                     return null
                 }
             }
@@ -152,21 +202,35 @@ export namespace GoogleProvider {
         let count = 0
 
         Log.debug("Google items load start")
+        const isAllFetched =  await Preferences.getItem(ServiceType.Google +'imageImportComplete') === 'true'
 
         while (hasMore) {
-            let request = root !== null ? albumImagesRequest(config, root, nextPage) : loadImagesRequest(config, nextPage)
-            //Log.debug("Load google items:" + JSON.stringify(request))
-
-            const response: GoogleMediaListResponse = await fetch(request.uri, request.params).then((response) => {
-                    if (response.ok) {
-                        return response.json()
-                    } else {
-                        Log.error("Load images error", response.body)
-                        return null
+            let response: GoogleMediaListResponse
+            if(isAllFetched) {
+                const end = await Preferences.getItem(ServiceType.Google +'imageImportDate')
+                const request = getImagesSearch(config, end!, page)
+                response = await fetch(request.uri, request.params).then((response) => {
+                        if (response.ok) {
+                            return response.json()
+                        } else {
+                            Log.error("Load images error", response.status)
+                            return null
+                        }
                     }
-                }
-            )
-
+                )
+            } else {
+                const request = root !== null ? albumImagesRequest(config, root, nextPage) : loadImagesRequest(config, nextPage)
+                //Log.debug("Load google items:" + JSON.stringify(request))
+                response = await fetch(request.uri, request.params).then((response) => {
+                        if (response.ok) {
+                            return response.json()
+                        } else {
+                            Log.error("Load images error", response.status)
+                            return null
+                        }
+                    }
+                )
+            }
             if (response === null) {
                 return new Promise((resolve, reject) => {
                     reject("Google images load error")
@@ -179,8 +243,12 @@ export namespace GoogleProvider {
                 })
             }
 
+            if(page === null) {
+                await Preferences.setItem(ServiceType.Google +'imageImportDate', response.mediaItems[0].mediaMetadata.creationTime)
+            }
+
             count += await addToTable('ImportObject', response.mediaItems, ServiceType.Google, (root === null ? '' : root),
-                (item: any) => { return SaufotoObjectType.Image }, 'filename', 'baseUrl')
+                (item: any) => { return SaufotoObjectType.Image }, 'filename', 'productUrl', 'baseUrl', ThumbSize.THUMB_128)
 
             Log.debug("Added Google  entries: " + count)
 
@@ -188,6 +256,7 @@ export namespace GoogleProvider {
             nextPage = response.nextPageToken
         }
         Log.debug("Google items load complete")
+        await Preferences.setItem(ServiceType.Google +'imageImportComplete', 'true')
         return {nextPage: null, items: [], hasMore: false }
     }
 
@@ -223,7 +292,7 @@ export namespace GoogleProvider {
             )
 
             count += await addToTable('ImportObject', response.albums, ServiceType.Google, (root === null ? '' : root),
-                (item: any) => { return SaufotoObjectType.Album }, 'title', 'coverPhotoBaseUrl', 'coverPhotoMediaItemId', 'mediaItemsCount')
+                (item: any) => { return SaufotoObjectType.Album }, 'title', 'productUrl', 'coverPhotoBaseUrl', ThumbSize.THUMB_256, 'coverPhotoMediaItemId','mediaItemsCount')
 
             Log.debug("Added Google  entries: " + count)
 
@@ -234,20 +303,34 @@ export namespace GoogleProvider {
         return {nextPage: nextPage, items: [], hasMore:false }
     }
 
-    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage, size: ThumbSize): Promise<string> {
-        const source = object.originalUri
-        let uri = await (object as ImportObject).createThumb(size,  source + '=' + size ).catch(async () =>{
-            return null
-        })
-        if( uri === null) {
-            const image = await getImage(config, (object as ImportObject).originId)
-            uri =  await (object as ImportObject).createThumb(size, image.baseUrl + '=' + size)
-        }
-        return uri
+    function addMinutes(minutes: number): Date {
+        return new Date(new Date().getTime() + minutes*60000);
     }
 
-    export async function getImageData( config: ServiceTokens, object: ImportObject|SaufotoImage): Promise<string> {
+    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage, size: ThumbSize): Promise<string> {
+        let importObject:ImportObject
+        if(object instanceof SaufotoImage ) {
+            importObject =  await object.getImport()
+        } else {
+            importObject = object
+        }
 
+        const image = await getImage(config, importObject.originId)
+        return await importObject.createThumb(size,  image.baseUrl + '=' + size )
+    }
+
+    export async function getImageData( config: ServiceTokens, object: SaufotoImage): Promise<string> {
+        const imp = await object.getImport()
+        const image = await getImage(config, imp.originId)
+        const mediaInfo = {
+            width: +image.mediaMetadata.width,
+            height: +image.mediaMetadata.height,
+            creationTime: image.mediaMetadata.creationTime,
+        }
+        await object.setMediaInfo(mediaInfo)
+        const uri = await cacheImage(image.baseUrl, mediaInfo.width, mediaInfo.height)
+        await object.setLocalImageFile(uri)
+        return uri
     }
 
     export function albumId(media:ImportObject|SaufotoImage) : string | null {

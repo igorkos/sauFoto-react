@@ -15,32 +15,19 @@ import {ImportObject} from "../data/watermelon/ImportObject";
 
 const Drawer = createDrawerNavigator();
 
-export const MediaContext = React.createContext< {importGallery: (items: [ImportObject]) => Promise<void>, importTo: (items: [ImportObject], album?: SaufotoAlbum) => Promise<void>} | null>(null);
 
 export function DrawerNavigator() {
-    const mediaContext = useMemo(
-        () => ({
-            importGallery: async (items:[ImportObject]) => {
-                Log.debug("Import to Gallery", JSON.stringify(items))
-            },
-            importTo: async (items:[ImportObject], _album?:SaufotoAlbum) => {
-                Log.debug("Import to Album")
-            },
-        }), [],);
-
     return (
-        <MediaContext.Provider value={mediaContext}>
-            <Drawer.Navigator
-                drawerContent={(props) => <SaufotoDrawer {...props}/>}
-                screenOptions={{headerShown: false }}>
-                <Drawer.Screen name="Gallery" component={RootNavigator} />
-                <Drawer.Screen name="Camera" component={CameraNavigator} />
-                <Drawer.Screen name="Google" component={GoogleNavigator}/>
-                <Drawer.Screen name="Dropbox" component={DropboxNavigator}/>
-                <Drawer.Screen name="Settings" component={SettingsScreen}/>
-                <Drawer.Screen name="About" component={AboutScreen}/>
-                <Drawer.Screen name="SplashScreen" component={SplashScreen}/>
-            </Drawer.Navigator>
-        </MediaContext.Provider>
+        <Drawer.Navigator
+            drawerContent={(props) => <SaufotoDrawer {...props}/>}
+            screenOptions={{headerShown: false }}>
+            <Drawer.Screen name="Gallery" component={RootNavigator} />
+            <Drawer.Screen name="Camera" component={CameraNavigator} />
+            <Drawer.Screen name="Google" component={GoogleNavigator}/>
+            <Drawer.Screen name="Dropbox" component={DropboxNavigator}/>
+            <Drawer.Screen name="Settings" component={SettingsScreen}/>
+            <Drawer.Screen name="About" component={AboutScreen}/>
+            <Drawer.Screen name="SplashScreen" component={SplashScreen}/>
+        </Drawer.Navigator>
     )
 }

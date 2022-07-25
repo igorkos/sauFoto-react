@@ -1,6 +1,7 @@
-import {SaufotoAlbum, SaufotoImage, SaufotoObjectType, SaufotoSyncAction} from "../data/watermelon/SaufotoImage";
-import { ImportObject} from "../data/watermelon/ImportObject";
+import {SaufotoImage, SaufotoObjectType, SaufotoSyncAction} from "../data/watermelon/SaufotoImage";
+import {ImportObject} from "../data/watermelon/ImportObject";
 import {ServiceType} from "../data/ServiceType";
+import * as React from "react";
 import {Component} from "react";
 import {getPlaceholder, Placeholders, thumbSize, ThumbSize} from "../constants/Images";
 import {FlatListItemSizes} from "../constants/Layout";
@@ -9,7 +10,6 @@ import {DataSourceProvider} from "../data/DataSourceProvider";
 import {Text, View} from "../components/Themed";
 import {Image, StyleSheet, TouchableOpacity} from "react-native";
 import FastImage from "react-native-fast-image";
-import * as React from "react";
 import {theme} from "../constants/themes";
 
 interface ImageSourceState {
@@ -27,6 +27,7 @@ interface ImageSourceState {
     mode: boolean
     syncOp: SaufotoSyncAction
     isSelected?: boolean,
+    timer: any | null
 }
 
 interface ImageSourceProps {
@@ -60,7 +61,8 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
             size: ThumbSize.THUMB_ORIGINAL,
             imageStyle: styles.imageStyle,
             syncOp: SaufotoSyncAction.None,
-            isSelected: false
+            isSelected: false,
+            timer:  null
         }
         this.log("Create list item for id: "+ props.item.id)
     }
@@ -103,7 +105,8 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
             size: size,
             imageStyle: imageStyle,
             syncOp: props.item.syncOp as SaufotoSyncAction,
-            isSelected: props.isSelected
+            isSelected: props.isSelected,
+            timer:null
         }
     }
 
@@ -117,6 +120,10 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
             return true
         }
         if(this.state.id !== nextState.id){
+            if( this.state.timer != null) {
+                clearTimeout(this.state.timer);
+                this.setState( {timer:null})
+            }
             this.log("Should update 'id' change id: "+ this.state.id)
             return true
         }
@@ -136,7 +143,7 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
             this.log("Should update 'mode' change id: "+ this.state.id)
             return true
         }
-        this.log("Should update no change id: "+ this.state.id)
+        //this.log("Should update no change id: "+ this.state.id)
         return false
     }
 
@@ -152,38 +159,49 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
         return null;
     }
 
-    componentDidMount() {
-        if( this.state.uri === null) {
-            this.log("Load thumb for: " + this.state.id)
-            const fetchThumb = async () => {
-                if (this.props.item.getOriginalUri !== null) {
-                    await DataSourceProvider.getThumbsData(this.props.dataProvider, this.props.item, this.state.size).then((src) => {
-                        this.setState({uri: src});
-                    })
-                }
-            }
-
-            fetchThumb().catch((err) => {
-                this.log("Loading thumb (" + this.state.id + ") error:" + err, 'error')
-                this.setState({ error: true });
-                this.props.onError(err)
-            });
+    _fetchThumb = async () => {
+        if (this.props.item.getOriginalUri !== null) {
+            await DataSourceProvider.getThumbsData(this.props.dataProvider, this.props.item, this.state.size).then((src) => {
+                this.setState({uri: src});
+            })
         }
     }
 
+    _loadImageThumb() {
+        if( this.state.uri === null) {
+            this.log("Load thumb for: " + this.state.id)
+            const timer = setTimeout( () => {
+                this._fetchThumb().catch((err) => {
+                    this.log("Loading thumb (" + this.state.id + ") error:" + err + 'raw:' + this.props.item.toString())
+                    this.setState({ error: true });
+                    this.props.onError(err)
+                });
+            }, 100)
+            this.setState( {timer:timer})
+
+        }
+    }
+
+    componentDidMount() {
+        this.log("Did Mount for: " + this.state.id)
+        this._loadImageThumb()
+    }
+
+    componentDidUpdate?(prevProps: ImageSourceProps, prevState: ImageSourceState, snapshot?: any) {
+        this.log("Did Update for: " + this.state.id)
+        this._loadImageThumb()
+    }
+
     onItemSelected(){
-        const media = this.props.item
+
         if(!this.state.error) {
-            if (!this.props.mode) {
-                this.props.onSelected(media, this.props.index)
+            if (!this.props.mode || this.props.dataProvider === ServiceType.Saufoto) {
+                this.props.onSelected(this.props.item, this.props.index)
             } else {
-                if(media instanceof SaufotoImage) {
-                    this.props.onSelected(media, this.props.index)
-                } else {
-                    if (media.syncOp == SaufotoSyncAction.None) {
-                        media.setSelected(!media.selected)
-                        this.setState({selected: media.selected});
-                    }
+                const media = this.props.item as ImportObject
+                if (media.syncOp == SaufotoSyncAction.None) {
+                    media.setSelected(!media.selected)
+                    this.setState({selected: media.selected});
                 }
             }
         }
@@ -295,8 +313,8 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
     },
     selectStyle: {
-        height: 30,
-        width: 30,
+        height: 20,
+        width: 20,
         marginRight:4,
         marginTop:4,
         zIndex: 5

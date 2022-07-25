@@ -4,6 +4,7 @@ import {Model} from "@nozbe/watermelondb";
 import {children, date, field, immutableRelation, reader, relation, text, writer} from "@nozbe/watermelondb/decorators";
 import {getThumbs, thumbUri} from "./DataSourceUtils";
 import { ImportObject } from "./ImportObject";
+import {MediaInfo} from "./MediaInfo";
 
 export enum SaufotoObjectType {
     None = 'none',
@@ -40,6 +41,7 @@ export class SaufotoImage extends Model {
     @immutableRelation('ImportObject', 'import_id') import!: any
     @relation("SaufotoAlbum", "album_id") album: any;
     @text('origin') origin!: string
+    @text('cashedData') cashedData!: string
 
     get smallThumb() : string | null {
         return thumbUri(this.thumbs, ThumbSize.THUMB_128)
@@ -50,11 +52,19 @@ export class SaufotoImage extends Model {
     }
 
     @writer async setLocalImageFile(value: string) {
-        this.update( record => record.media_info = value )
+        this.update( record => record.cashedData = value )
     }
 
     @reader async getLocalImageFile(): Promise<string | null> {
-        return this.media_info === undefined ? null:this.media_info
+        return this.cashedData === undefined ? null:this.cashedData
+    }
+
+    @reader async getMediaInfo(): Promise<MediaInfo | null> {
+        return this.media_info === undefined ? null:JSON.parse(this.media_info)
+    }
+
+    @writer async setMediaInfo(info: MediaInfo) {
+        this.update( record => record.media_info = JSON.stringify(info) )
     }
 
 
@@ -62,18 +72,17 @@ export class SaufotoImage extends Model {
         return this.import.fetch()
     }
 
-    // @ts-ignore
     getThumbUri(size: ThumbSize): string | null {
         return thumbUri(this.thumbs, size)
     }
 
     async getOriginalUri(): Promise<string> {
         if( this.originalImageBSFile === null) {
-            if( this.media_info === null) {
+            if( this.cashedData === null) {
                 const object = await this.getImport()
                 return await object.getOriginalUri()
             }
-            return this.media_info!
+            return this.cashedData!
         }
         return this.originalImageBSFile!
     }

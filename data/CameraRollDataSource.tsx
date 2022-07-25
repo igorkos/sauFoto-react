@@ -10,6 +10,7 @@ import {ServiceTokens} from "./DataServiceConfig";
 import {ServiceType} from "./ServiceType";
 import {ImportObject} from "./watermelon/ImportObject";
 import {addToTable} from "./watermelon/DataSourceUtils";
+import {cacheImage, cacheImageData} from "../utils/FileUtils";
 
 export namespace CameraProvider {
 
@@ -60,7 +61,6 @@ export namespace CameraProvider {
 
             Log.debug("Added Camera roll  entries: " + count)
 
-
             hasMore = !(photosTemp.assets.length < 50)
             nextPage = photosTemp.assets[photosTemp.assets.length - 1].id
         }
@@ -73,8 +73,22 @@ export namespace CameraProvider {
         return await (object as ImportObject).createThumb(size, uri)
     }
 
-    export async function getImageData( config: ServiceTokens, object: ImportObject|SaufotoImage): Promise<string> {
-        return  object.getOriginalUri()
+    export async function getImageData( config: ServiceTokens, object: SaufotoImage): Promise<string> {
+        const imp = await object.getImport()
+        const photo = await MediaLibrary.getAssetInfoAsync(imp.originId)
+        const mediaInfo = {
+            width: photo.width,
+            height: photo.height,
+            creationTime: (new Date(photo.creationTime)).toDateString(),
+            location: {
+                latitude: photo.location?.latitude,
+                longitude: photo.location?.longitude
+            }
+        }
+        await object.setMediaInfo(mediaInfo)
+        const uri = await cacheImage(await object.getOriginalUri(), mediaInfo.width, mediaInfo.height)
+        await object.setLocalImageFile(uri)
+        return uri
     }
 
     export async function loadAlbums(_config: ServiceTokens, _root: string | null, _page: string | null): Promise<LoadImagesResponse> {

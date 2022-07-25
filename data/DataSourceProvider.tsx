@@ -23,21 +23,21 @@ export const DataProviders = {
         getThumbsData: GoogleProvider.getThumbsData,
         loadAlbums: GoogleProvider.loadAlbums,
         albumId: GoogleProvider.albumId,
-        getImageData: DropboxProvider.getImageData,
+        getImageData: GoogleProvider.getImageData,
     },
     Camera: {
         loadImages: CameraProvider.loadImages,
         getThumbsData: CameraProvider.getThumbsData,
         loadAlbums: CameraProvider.loadAlbums,
         albumId: CameraProvider.albumId,
-        getImageData: DropboxProvider.getImageData,
+        getImageData: CameraProvider.getImageData,
     },
     Saufoto: {
         loadImages: TestProvider.loadImages,
         getThumbsData: TestProvider.getThumbsData,
         loadAlbums: TestProvider.loadAlbums,
         albumId: TestProvider.albumId,
-        getImageData: DropboxProvider.getImageData,
+        getImageData: TestProvider.getImageData,
     }
 }
 
