@@ -2,13 +2,13 @@ import {authorizeWith, isAuthorized} from "./AuthorizationProvicer";
 import {SaufotoAlbum, SaufotoImage} from "./watermelon/SaufotoImage";
 import {DropboxProvider} from "./DropboxDataSource";
 import {GoogleProvider} from "./GoogleDataSource";
-import {ThumbSize} from "../constants/Images";
+import {ThumbSize} from "../styles/Images";
 import {TestProvider} from "./ImageDataSource";
 import {CameraProvider} from "./CameraRollDataSource";
 import {ServiceType} from "./ServiceType";
 import {ImportObject} from "./watermelon/ImportObject";
 import {AuthError} from "./DataServiceConfig";
-import {Log} from "../hooks/log";
+import {Log} from "../utils/log";
 
 export const DataProviders = {
     Dropbox: {
@@ -74,7 +74,7 @@ export namespace DataSourceProvider {
         })
     }
 
-    export async function getImageData( type: ServiceType, object: ImportObject|SaufotoImage): Promise<string> {
+    export async function getImageData( type: ServiceType, object: SaufotoImage): Promise<string> {
         const cache = await object.getLocalImageFile()
         if(cache !== null ) return cache
 
@@ -89,7 +89,7 @@ export namespace DataSourceProvider {
         })
     }
 
-    export function albumId(type: ServiceType, media:ImportObject|SaufotoImage):  string | null {
+    export function albumId(type: ServiceType, media:ImportObject|SaufotoImage|SaufotoAlbum):  string | null {
         return DataProviders[type].albumId(media)
     }
 }

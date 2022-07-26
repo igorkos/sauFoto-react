@@ -1,13 +1,15 @@
-import {Model} from "@nozbe/watermelondb";
-import {date, field, reader, text, writer} from '@nozbe/watermelondb/decorators'
-import {placeholderUri, ThumbData, thumbHeight, ThumbSize, thumbWith} from "../../constants/Images";
+import {Model, Q} from "@nozbe/watermelondb";
+import {date, field, lazy, reader, text, writer} from '@nozbe/watermelondb/decorators'
+import {placeholderUri, ThumbData, thumbHeight, ThumbSize, thumbWith} from "../../styles/Images";
 import ImageResizer from "react-native-image-resizer";
 import {ServiceType} from "../ServiceType";
 import {SaufotoObjectType, SaufotoSyncAction} from "./SaufotoImage";
 import {getThumbs, thumbUri} from "./DataSourceUtils";
+import {database} from "../../index";
+import {Tables} from "./shema";
 
 export class ImportObject extends Model {
-    static table = 'ImportObject'
+    static table = 'import_object'
 
     @text('type') type!: string
     @text('origin') origin!: string
@@ -79,6 +81,8 @@ export class ImportObject extends Model {
     toString() :string {
         return "ImportObject (" + this.originId + "): " + JSON.stringify(this._raw)
     }
+
+
 }
 
  export async function createThumb(size:ThumbSize, uri:string): Promise<string> {
@@ -86,4 +90,22 @@ export class ImportObject extends Model {
     const thumbs = Array()
     thumbs.push({size:size, uri:result.uri})
     return JSON.stringify(thumbs)
+}
+
+export async function subscribeImports( origin: string, root: string | null, type?: SaufotoObjectType, next?: ((value: ImportObject[]) => void) | null) {
+    const parent = root === null ? '':root
+    let subscription
+    if( type !== undefined) {
+        subscription = database.get<ImportObject>(Tables.Import).query(
+            Q.where('origin',origin),
+            Q.where('type', type),
+            Q.where('parentId', parent),
+        ).observe().subscribe( next )
+    } else {
+        subscription = database.get<ImportObject>(Tables.Import).query(
+            Q.where('origin', origin),
+            Q.where('parentId', parent),
+        ).observe().subscribe(next)
+    }
+    return subscription
 }

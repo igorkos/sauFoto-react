@@ -1,6 +1,6 @@
 import * as React from "react";
 import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfiguration} from "react-native-app-auth";
-import {ThumbSize} from "../constants/Images";
+import {ThumbSize} from "../styles/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {SaufotoImage} from "./watermelon/SaufotoImage";
 import {ServiceTokens} from "./DataServiceConfig";
@@ -49,6 +49,11 @@ export namespace TestProvider {
         })
     }
 
+    export async function getImageData( config: ServiceTokens, object: SaufotoImage): Promise<string> {
+        return new Promise( (resolve) => {
+            resolve("")
+        })
+    }
     export function albumId( _media: ImportObject|SaufotoImage):  string | null {
         return null
     }

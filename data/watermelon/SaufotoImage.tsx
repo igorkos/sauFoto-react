@@ -1,10 +1,23 @@
 
-import { ThumbSize } from "../../constants/Images";
-import {Model} from "@nozbe/watermelondb";
-import {children, date, field, immutableRelation, reader, relation, text, writer} from "@nozbe/watermelondb/decorators";
+import { ThumbSize } from "../../styles/Images";
+import {Model, Q} from "@nozbe/watermelondb";
+import {
+    children,
+    date,
+    field,
+    immutableRelation,
+    lazy,
+    reader,
+    relation,
+    text,
+    writer
+} from "@nozbe/watermelondb/decorators";
 import {getThumbs, thumbUri} from "./DataSourceUtils";
 import { ImportObject } from "./ImportObject";
 import {MediaInfo} from "./MediaInfo";
+import {database} from "../../index";
+import {Tables} from "./shema";
+import {Log} from "../../utils/log";
 
 export enum SaufotoObjectType {
     None = 'none',
@@ -19,10 +32,10 @@ export enum SaufotoSyncAction {
 
 // @ts-ignore
 export class SaufotoImage extends Model {
-    static table = 'SaufotoImage'
+    static table = Tables.Image
     // @ts-ignore
     static associations = {
-        albums: {type: "belongs_to", key: "album_id"},
+        album_image: {type: 'has_many', key: 'image_id'},
     }
     /**
      * Local import/export status
@@ -38,10 +51,17 @@ export class SaufotoImage extends Model {
     @text('media_info') media_info: string | undefined
     @text('originalImageBSFile') originalImageBSFile: string | undefined
     @text('editedImageBSFile') editedImageBSFile: string | undefined
-    @immutableRelation('ImportObject', 'import_id') import!: any
-    @relation("SaufotoAlbum", "album_id") album: any;
     @text('origin') origin!: string
     @text('cashedData') cashedData!: string
+    @field('selected') selected!: boolean
+
+    @immutableRelation(Tables.Import, 'import_id') import!: any
+
+    @lazy
+    albums = this.collections
+        .get(Tables.Album)
+        .query(Q.on(Tables.AlbumImages, 'image_id', this.id));
+
 
     get smallThumb() : string | null {
         return thumbUri(this.thumbs, ThumbSize.THUMB_128)
@@ -53,6 +73,10 @@ export class SaufotoImage extends Model {
 
     @writer async setLocalImageFile(value: string) {
         this.update( record => record.cashedData = value )
+    }
+
+    @writer async setSelected(selected: boolean) {
+        this.update( record => record.selected = selected)
     }
 
     @reader async getLocalImageFile(): Promise<string | null> {
@@ -98,10 +122,10 @@ export class SaufotoImage extends Model {
 
 // @ts-ignore
 export class SaufotoAlbum extends Model {
-    static table = 'SaufotoAlbum'
+    static table = Tables.Album
     // @ts-ignore
     static associations = {
-        images: { type: 'has_many', foreignKey: 'album_id' },
+        album_image: { type: 'has_many', foreignKey: 'album_id' },
     }
     @text('type') type!: string
     @text('syncOp') syncOp!: string
@@ -109,9 +133,55 @@ export class SaufotoAlbum extends Model {
     @text('title') title: string | undefined
     @text('description') description: string | undefined
     @date('dateAdded') dateAdded!: Date
-    @field('count') media_info!: number
+    @field('count') count!: number
     @text('origin') origin!: string
 
-    @immutableRelation('ImportObject', 'import_id') import!: string
-    @children("SaufotoImage") images: any
+    @immutableRelation(Tables.Import, 'import_id') import!: any
+
+    @writer async setCount(count: number) {
+        this.update( record => record.count = count )
+    }
+
+    @lazy
+    images = this.collections
+        .get(Tables.Image)
+        .query(
+            Q.on(Tables.AlbumImages, Q.where('album_id', this.id)));
+}
+
+// @ts-ignore
+export class SaufotoAlbumImage extends Model {
+    static table = Tables.AlbumImages
+    // @ts-ignore
+    static associations = {
+        image: {type: 'belongs_to', foreignKey: 'image_id'},
+        album: {type: 'belongs_to', foreignKey: 'album_id'},
+    }
+
+    @immutableRelation(Tables.Image, 'image_id') image!: any
+    @immutableRelation(Tables.Album, 'album_id') album!: any
+}
+
+export async function subscribeImages( root: string | null, next?: ((value: SaufotoImage[]) => void) | null) {
+    let subscription = null
+    if( root === null) {
+        subscription = database.get<SaufotoImage>(Tables.Image).query().observe().subscribe( next )
+    } else {
+        subscription = await database.get<SaufotoAlbumImage>(Tables.AlbumImages).query(Q.where('album_id', root)).observe().subscribe( async (value) => {
+            Log.debug("Table update album_image count: " + value.length)
+            const images = Array()
+            for( let a of  value) {
+                const image = await a.image.fetch()
+                images.push(image)
+            }
+            if (next) {
+                next(images)
+            }
+        })
+    }
+    return subscription
+}
+
+export async function subscribeAlbums(next?: ((value: SaufotoAlbum[]) => void)) {
+    return database.get<SaufotoAlbum>(Tables.Album).query().observe().subscribe( next )
 }

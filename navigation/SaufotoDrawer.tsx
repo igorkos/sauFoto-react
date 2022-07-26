@@ -7,7 +7,7 @@ import {
 import { StyleSheet } from 'react-native';
 import {Caption, Title, Avatar, Drawer} from "react-native-paper";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {AuthContext} from "../components/context";
+import {AuthContext} from "../styles/context";
 import {database} from "../index";
 
 // @ts-ignore

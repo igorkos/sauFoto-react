@@ -1,6 +1,6 @@
-import {Log} from "../hooks/log";
+import {Log} from "../utils/log";
 import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
-import {ThumbSize} from "../constants/Images";
+import {ThumbSize} from "../styles/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ServiceType} from "./ServiceType";
@@ -247,7 +247,7 @@ export namespace GoogleProvider {
                 await Preferences.setItem(ServiceType.Google +'imageImportDate', response.mediaItems[0].mediaMetadata.creationTime)
             }
 
-            count += await addToTable('ImportObject', response.mediaItems, ServiceType.Google, (root === null ? '' : root),
+            count += await addToTable(response.mediaItems, ServiceType.Google, (root === null ? '' : root),
                 (item: any) => { return SaufotoObjectType.Image }, 'filename', 'productUrl', 'baseUrl', ThumbSize.THUMB_128)
 
             Log.debug("Added Google  entries: " + count)
@@ -291,7 +291,7 @@ export namespace GoogleProvider {
                 }
             )
 
-            count += await addToTable('ImportObject', response.albums, ServiceType.Google, (root === null ? '' : root),
+            count += await addToTable(response.albums, ServiceType.Google, (root === null ? '' : root),
                 (item: any) => { return SaufotoObjectType.Album }, 'title', 'productUrl', 'coverPhotoBaseUrl', ThumbSize.THUMB_256, 'coverPhotoMediaItemId','mediaItemsCount')
 
             Log.debug("Added Google  entries: " + count)

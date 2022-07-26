@@ -1,4 +1,4 @@
-import {Log} from "../hooks/log";
+import {Log} from "../utils/log";
 import {AuthConfiguration, AuthorizeResult} from "react-native-app-auth";
 import {ServiceConfig, ServiceConfigAuthMethods, ServiceTokens} from "./DataServiceConfig";
 import {Preferences} from "./PreferenceStorage";

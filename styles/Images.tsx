@@ -6,6 +6,7 @@ export const Placeholders = {
     image: require('../assets/images/image_placeholder.png'),
     select: require('../assets/images/asset_select_icon.png'),
     imageError: require('../assets/images/error_load_image.png'),
+    folderError: require('../assets/images/error_load_image.png'),
     syncPending: require('../assets/images/sync_white.png'),
 };
 

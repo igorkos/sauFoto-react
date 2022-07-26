@@ -1,11 +1,17 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb'
-import {SaufotoImage} from "./SaufotoImage";
+
+export enum Tables{
+    Import = 'import_object',
+    Image = 'image',
+    Album = 'album',
+    AlbumImages = 'album_image',
+}
 
 export default appSchema({
     version: 1,
     tables: [
         tableSchema({
-            name: 'ImportObject',
+            name: 'import_object',
             columns: [
                 {name: 'type', type: 'string'},
                 {name: 'origin', type: 'string'},
@@ -22,7 +28,7 @@ export default appSchema({
             ]
         }),
         tableSchema({
-            name: 'SaufotoImage',
+            name: 'image',
             columns: [
                 {name: 'syncOp', type:  'string'},
                 {name: 'type', type: 'string'},
@@ -37,14 +43,16 @@ export default appSchema({
                 {name: 'originalImageBSFile', type: 'string', isOptional: true},
                 {name: 'editedImageBSFile', type: 'string', isOptional: true},
 
-                {name: 'album_id', type: 'string'},
                 {name: 'import_id', type: 'string', isIndexed: true},
+
                 {name: 'origin', type: 'string'},
                 {name: 'cashedData', type: 'string', isOptional: true},
+
+                {name: 'selected', type: 'boolean'},
             ],
         }),
         tableSchema({
-            name: 'SaufotoAlbum',
+            name: 'album',
             columns: [
                 {name: 'syncOp', type:  'string', isIndexed: true},
                 {name: 'type', type: 'string', isIndexed: true},
@@ -60,6 +68,13 @@ export default appSchema({
                 {name: 'import_id', type: 'string', isIndexed: true},
                 {name: 'origin', type: 'string'},
             ],
-        })
+        }),
+        tableSchema({
+            name: 'album_image',
+            columns: [
+                {name: 'album_id', type: 'string', isIndexed: true},
+                {name: 'image_id', type: 'string', isIndexed: true},
+            ]
+        }),
     ]
 })

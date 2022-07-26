@@ -1,24 +1,31 @@
-import {Log} from "../../hooks/log";
+import {Log} from "../../utils/log";
 import {BackHandler, FlatList, Platform, SafeAreaView, StyleSheet, Switch, TouchableOpacity} from "react-native";
-import {ProgressCircle, Text, View} from "../../components/Themed";
+import {ProgressCircle, Text, View} from "../../styles/Themed";
 import * as React from "react";
 import {useCallback, useEffect, useRef, useState} from "react";
-import {theme} from "../../constants/themes";
+import {theme} from "../../styles/themes";
 import {DataSourceProvider, LoadImagesResponse} from "../../data/DataSourceProvider";
-import {SaufotoImage, SaufotoObjectType,} from "../../data/watermelon/SaufotoImage";
+import {
+    SaufotoAlbum,
+    SaufotoImage,
+    SaufotoObjectType,
+    subscribeAlbums,
+    subscribeImages,
+} from "../../data/watermelon/SaufotoImage";
 import {ServiceType} from "../../data/ServiceType";
-import {FlatListItemSizes, screenWidth} from "../../constants/Layout";
+import {FlatListItemSizes, screenWidth} from "../../styles/Layout";
 import {authorizeWith} from "../../data/AuthorizationProvicer";
 import {SpeedyList, SpeedyListItemMeta, SpeedyListItemRenderer} from "react-native-speedy-list"
-import {database} from "../../index";
-import {ImportObject} from "../../data/watermelon/ImportObject";
-import CollectionListItem from "../CollectionListItem";
+import {ImportObject, subscribeImports} from "../../data/watermelon/ImportObject";
+import CollectionListItem from "./CollectionListItem";
 import {Subscription} from "rxjs";
-import {Q} from "@nozbe/watermelondb";
 import {useIsFocused} from "@react-navigation/native";
 import {ImportProvider} from "../../data/ImportProvider";
 import Carousel from "react-native-snap-carousel";
-import CollectionPreviewItem from "../CollectionPreviewItem";
+import CollectionPreviewItem from "./CollectionPreviewItem";
+import {NewAlbumDialog} from "./AlbumSelectDialog";
+import {addImagesToAlbum, addSaufotoAlbum} from "../../data/watermelon/DataSourceUtils";
+import {ActionEvent, ActionEvents, createAction, eventsSubscriber} from "../types/ActionEvents";
 
 
 const PubSub = require('pubsub-js');
@@ -33,16 +40,30 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     }
 
     /*
+    Dialog handling
+     */
+    const [isAddAlbum, setIsAddAlbum] = useState(false);
+    const addAlbum = async (name: string | null) => {
+        setIsAddAlbum(false)
+        if( name !== null) {
+            await addSaufotoAlbum(name)
+        }
+    }
+    /*
     Screen Menu Action processing
     */
-    const [events, setEvent] = useState('');
+    const [events, setEvent] = useState<ActionEvent>(createAction(ActionEvents.none));
 
-    const menuSubscriber = (msg: any, data: React.SetStateAction<string>) => {
+    const menuSubscriber = (msg: any, data: React.SetStateAction<ActionEvent>) => {
         setEvent(data)
     };
 
     const importAdd = async (entries: ImportObject[]) => {
         await ImportProvider.addEntries(entries)
+    }
+
+    const addToAlbum = async (entries: SaufotoImage[]) => {
+        await addImagesToAlbum(entries, root!)
     }
 
     const selectAll = async (entries: ImportObject[]) => {
@@ -52,15 +73,15 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     }
 
     useEffect(() => {
-        switch (events) {
-            case 'selectAll':{
+        switch (events.event) {
+            case ActionEvents.selectAll:{
                 Log.debug("PhotosListView -> select all")
                 selectAll(objects as ImportObject[]).then(() => {
                     Log.debug("All selected")
                 } )
                 break
             }
-            case 'importToGallery' : {
+            case ActionEvents.importToGallery : {
                 const toImport = (objects as ImportObject[]).filter((value) => {
                     return value.selected
                 })
@@ -70,7 +91,25 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
                 })
                 break;
             }
-            case 'importToAlbum': {
+            case ActionEvents.addAlbum : {
+                setIsAddAlbum(true)
+                break;
+            }
+            case ActionEvents.addToAlbum: {
+                const toAdd = (objects as SaufotoImage[]).filter((value) => {
+                    return value.selected
+                })
+                Log.debug("PhotosListView -> importToGallery selected " + toAdd.length)
+                addToAlbum(toAdd).then(() => {
+                    Log.debug("PhotosListView -> Added to album")
+                })
+                break
+            }
+            case ActionEvents.addImages : {
+                navigation.push('SaufotoAlbumAddImages', {albumId: root})
+                break;
+            }
+            case ActionEvents.importToAlbum: {
                 /*
                 const toImport = dataSource.filter((value) => {
                     return value.selected
@@ -80,7 +119,9 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
                 break;
             }
         }
-        setEvent('')
+        if(events.event !== ActionEvents.none) {
+            setEvent(createAction(ActionEvents.none))
+        }
     },[events])
 
 
@@ -94,7 +135,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
         if(visible !== isVisible) {
             Log.debug(type + " " + (albums ? 'albums':'images') + " is in focus: " + isVisible + ' root: ' + root)
             if (isVisible) {
-                setToken(PubSub.subscribe('NavigationDrawerEvents', menuSubscriber));
+                setToken(PubSub.subscribe(eventsSubscriber, menuSubscriber));
             } else {
                 PubSub.unsubscribe(token);
                 setToken(null)
@@ -110,52 +151,49 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     /*
     Data fetching
      */
-    const [objects, setObjects] = useState<ImportObject[] | SaufotoImage[]>([])
+    const [objects, setObjects] = useState<ImportObject[] | SaufotoImage[] | SaufotoAlbum[]>([])
     const [hasMore, setHasMore] = useState(true);
     const [isLoading, setLoading] = useState(false);
     const [_, setSubscription] = useState<Subscription | null>(null)
     const initData = useCallback(async () => {
-        const parent = root === null ? '':root
-        switch (type) {
+         switch (type) {
             case ServiceType.Google:{
-                const subscription = await database.get<ImportObject>('ImportObject').query(
-                    Q.where('origin',ServiceType.Google),
-                    Q.where('type', (albums ? SaufotoObjectType.Album:SaufotoObjectType.Image)),
-                    Q.where('parentId', parent),
-                ).observe().subscribe({ next:(value) => {
+                const subscription = await subscribeImports(ServiceType.Google, root,  (albums ? SaufotoObjectType.Album:SaufotoObjectType.Image), (value) => {
                         Log.debug("Table update " + type + "images count: " + value.length)
                         setObjects(value)
-                    }})
+                    })
                 setSubscription(subscription)
                 break;
             }
             case ServiceType.Dropbox: {
-                const subscription = await database.get<ImportObject>('ImportObject').query(
-                    Q.where('origin',ServiceType.Dropbox),
-                    Q.where('parentId', parent),
-                ).observe().subscribe({ next:(value) => {
-                        Log.debug("Table update " + type + "images count: " + value.length)
-                        setObjects(value)
-                    }})
+                const subscription = await subscribeImports(ServiceType.Dropbox, root, undefined, (value) => {
+                    Log.debug("Table update " + type + "images count: " + value.length)
+                    setObjects(value)
+                })
                 setSubscription(subscription)
                 break;
             }
             case ServiceType.Camera: {
-                const subscription = await database.get<ImportObject>('ImportObject').query(
-                    Q.where('origin',ServiceType.Camera),
-                    Q.where('type', SaufotoObjectType.Image)
-                ).observe().subscribe({ next:(value) => {
-                        Log.debug("Table update " + type + "images count: " + value.length)
-                        setObjects(value)
-                    }})
+                const subscription = await subscribeImports(ServiceType.Camera, root, SaufotoObjectType.Image, (value) => {
+                    Log.debug("Table update " + type + "images count: " + value.length)
+                    setObjects(value)
+                })
                 setSubscription(subscription)
                 break;
             }
             case ServiceType.Saufoto: {
-                const subscription = await database.get<SaufotoImage>('SaufotoImage').query().observe().subscribe({ next:(value) => {
-                        Log.debug("Table update " + type + "images count: " + value.length)
+                let subscription
+                if (albums) {
+                    subscription =  await subscribeAlbums((value) => {
+                            Log.debug("Table update " + type + " albums count: " + value.length)
+                            setObjects(value)
+                        })
+                } else {
+                    subscription =  await subscribeImages(isImport ? null:root, (value) => {
+                        Log.debug("Table update " + type + " images count: " + value.length)
                         setObjects(value)
-                    }})
+                    })
+                }
                 setSubscription(subscription)
                 break;
             }
@@ -227,7 +265,8 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     // @ts-ignore
     const [albumsPreview, setAlbumsPreview] = useState(true);
     const renderItem = useCallback<SpeedyListItemRenderer<ImportObject|SaufotoImage>>((props ) => {
-        return <CollectionListItem  item={props.item} mode={albumsPreview} onSelected={onItemSelected} dataProvider={type} index={props.index} onError={onError} debug={true} small={false}/>
+        const browse = type === ServiceType.Saufoto ? !isImport:albumsPreview
+        return <CollectionListItem  item={props.item} browse={browse} onSelected={onItemSelected} dataProvider={type} index={props.index} onError={onError} debug={true} small={false}/>
     },[albumsPreview])
 
     const compareItems = (a: ImportObject, b: ImportObject):boolean => {
@@ -239,10 +278,14 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     }
 
     //Top level item selection processing
-    const onItemSelected = (item: ImportObject|SaufotoImage, index: number) => {
+    const onItemSelected = (item: ImportObject|SaufotoImage|SaufotoAlbum, index: number) => {
         if( type === ServiceType.Saufoto ) {
-            const albumId = route.params?.albumId != null ? route.params?.albumId:null
-            navigation.push('PreviewImages', {albumId: albumId, first:index})
+            if( albums ) {
+                navigation.push('SaufotoAlbumImages', {albumId: item.id})
+            } else {
+                const albumId = route.params?.albumId != null ? route.params?.albumId : null
+                navigation.push('PreviewImages', {albumId: albumId, first: index})
+            }
         } else {
             if(!isImport) {
                 navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item), first:index})
@@ -282,7 +325,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     const renderFlatItem = useCallback((props: { item: ImportObject | SaufotoImage; index: any; })  => {
         const isSelected = props.index === indexSelected
         //Log.debug("selected " + props.index + " selected " + indexSelected + " " + isSelected)
-        return <CollectionListItem  item={props.item} mode={albumsPreview} onSelected={(item: ImportObject|SaufotoImage, index: number) => {carouselRef?.current?.snapToItem(index)}} dataProvider={type} index={props.index} onError={onError} debug={true} small={true} isSelected={ isSelected }/>
+        return <CollectionListItem  item={props.item} browse={true} onSelected={(item: ImportObject|SaufotoImage, index: number) => {carouselRef?.current?.snapToItem(index)}} dataProvider={type} index={props.index} onError={onError} debug={true} small={true} isSelected={ isSelected }/>
     },[indexSelected])
 
     const renderCarousel = useCallback((props: { item: SaufotoImage; index: any; })  => {
@@ -306,9 +349,10 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
         }
     }
 
+
     const height = albums ? FlatListItemSizes[type].album.layout : FlatListItemSizes[type].image.layout
     Log.debug("PhotosListView render")
-    return !isPreview ? (
+    return isAddAlbum ? (<NewAlbumDialog onOk={addAlbum} onCancel={ () => setIsAddAlbum( false)}/>):( !isPreview ? (
         <SafeAreaView style={styles.container}>
                 <SpeedyList<ImportObject>
                     scrollViewProps={{style:styles.container}}
@@ -354,7 +398,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
                 renderItem={renderFlatItem}
             />
         </SafeAreaView>
-    )
+    ))
 }
 
 /*

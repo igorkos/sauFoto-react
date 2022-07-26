@@ -1,11 +1,11 @@
 import * as React from "react";
-import {Log} from "../hooks/log";
+import {Log} from "../utils/log";
 import {Dropbox, DropboxResponse, files} from "dropbox";
 import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage"
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ServiceType} from "./ServiceType";
-import {ThumbSize} from "../constants/Images";
+import {ThumbSize} from "../styles/Images";
 import { Image } from 'react-native';
 import {ImportObject} from "./watermelon/ImportObject";
 import {addToTable} from "./watermelon/DataSourceUtils";
@@ -63,7 +63,7 @@ export namespace DropboxProvider {
                 return false
             })
 
-            count += await addToTable('ImportObject', photos, ServiceType.Dropbox, (root === null ? '' : root),
+            count += await addToTable( photos, ServiceType.Dropbox, (root === null ? '' : root),
                 (item: any) => { return item['.tag'] === 'file' ? SaufotoObjectType.Image : SaufotoObjectType.Album }, 'name', 'path_lower')
 
             Log.debug("Added Dropbox entries: " + count)

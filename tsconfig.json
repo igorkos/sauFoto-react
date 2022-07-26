@@ -22,7 +22,7 @@
     "jsx": "react-jsx"
   },
   "include": [
-    "components",
+    "styles",
     "constants",
     "data",
     "hooks",

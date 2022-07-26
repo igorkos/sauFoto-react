@@ -1,9 +1,10 @@
 import * as React from "react";
-import {photosListView} from "./PhotosCollectionList";
+import {photosListView} from "../compnents/PhotosCollectionList";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
-import {theme} from "../../constants/themes";
-import {NavigationDrawerBack, NavigationDrawerRightImportImages} from "../../components/NavigationBar/DrawerButtons";
+import {theme} from "../../styles/themes";
+import {HeaderNavigationRight, NavigationDrawerBack} from "../compnents/DrawerButtons";
 import {ServiceType} from "../../data/ServiceType";
+import {ActionEvents} from "../types/ActionEvents";
 
 const Stack = createNativeStackNavigator();
 
@@ -19,8 +20,7 @@ export function CameraNavigator({navigation}) {
                     <NavigationDrawerBack navigationProps={navigation}/>
                 ),
                 headerRight: () => (
-                    // @ts-ignore
-                    <NavigationDrawerRightImportImages navigationProps={navigation} type={ServiceType.Camera}/>
+                    <HeaderNavigationRight actions={[ActionEvents.selectAll,ActionEvents.importToGallery, ActionEvents.importToAlbum]}/>
                 ),
             }}/>
         </Stack.Navigator>

@@ -1,15 +1,19 @@
 import * as React from "react";
-import {photosListView} from "./PhotosCollectionList";
+import {photosListView} from "../compnents/PhotosCollectionList";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
-import {theme} from "../../constants/themes";
-import {NavigationDrawerBack, NavigationDrawerRightImportImages} from "../../components/NavigationBar/DrawerButtons";
-import useColorScheme from "../../hooks/useColorScheme";
+import {theme} from "../../styles/themes";
+import {
+    HeaderNavigationRight,
+    NavigationDrawerBack,
+} from "../compnents/DrawerButtons";
+import useColorScheme from "../../styles/useColorScheme";
 import {getFocusedRouteNameFromRoute} from "@react-navigation/native";
 import {RootTabParamList, RootTabScreenProps} from "./types";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {ServiceType} from "../../data/ServiceType";
 import { ColorValue } from "react-native";
+import {ActionEvents} from "../types/ActionEvents";
 
 const Stack = createNativeStackNavigator();
 // @ts-ignore
@@ -25,8 +29,7 @@ export function GoogleNavigator({navigation}) {
                     <NavigationDrawerBack navigationProps={navigation}/>
                 ),
                 headerRight: () => (
-                    // @ts-ignore
-                    <NavigationDrawerRightImportImages navigationProps={navigation} type={ServiceType.Google}/>
+                    <HeaderNavigationRight actions={[ActionEvents.selectAll,ActionEvents.importToGallery, ActionEvents.importToAlbum]}/>
                 ),
             }}/>
             <Stack.Screen name="GoogleAlbumImages" component={GooglePhotosScreen} options={{
@@ -35,8 +38,7 @@ export function GoogleNavigator({navigation}) {
                 headerStyle: {backgroundColor: theme.colors.headerBackground,},
                 headerTintColor: theme.colors.text,
                 headerRight: () => (
-                    // @ts-ignore
-                    <NavigationDrawerRightImportImages navigationProps={navigation} type={ServiceType.Google}/>
+                    <HeaderNavigationRight actions={[ActionEvents.selectAll,ActionEvents.importToGallery, ActionEvents.importToAlbum]}/>
                 ),
             }}/>
         </Stack.Navigator>

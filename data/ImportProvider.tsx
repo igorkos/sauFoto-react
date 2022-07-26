@@ -1,10 +1,11 @@
 import {ImportObject} from "./watermelon/ImportObject";
 import {database} from "../index";
 import {SaufotoImage, SaufotoObjectType, SaufotoSyncAction} from "./watermelon/SaufotoImage";
+import {Tables} from "./watermelon/shema";
 
 export namespace ImportProvider {
     export async function addEntries( entries: ImportObject[]) {
-        const images = database.get<SaufotoImage>('SaufotoImage')
+        const images = database.get<SaufotoImage>(Tables.Image)
         const newItems = Array()
         for( let value of entries) {
             const entry = images.prepareCreate(entry => {

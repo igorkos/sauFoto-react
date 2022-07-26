@@ -5,8 +5,8 @@
 import * as React from 'react';
 import {Text as DefaultText, useWindowDimensions, View as DefaultView} from 'react-native';
 
-import Colors from '../constants/Colors';
-import useColorScheme from '../hooks/useColorScheme';
+import Colors from './Colors';
+import useColorScheme from './useColorScheme';
 
 import {Menu, MenuProps} from 'react-native-material-menu';
 import * as Progress from 'react-native-progress';

@@ -1,9 +1,9 @@
-import {SaufotoImage} from "../data/watermelon/SaufotoImage";
-import {ServiceType} from "../data/ServiceType";
+import {SaufotoImage} from "../../data/watermelon/SaufotoImage";
+import {ServiceType} from "../../data/ServiceType";
 import {Component} from "react";
-import {Placeholders} from "../constants/Images";
-import {Log} from "../hooks/log";
-import {DataSourceProvider} from "../data/DataSourceProvider";
+import {Placeholders} from "../../styles/Images";
+import {Log} from "../../utils/log";
+import {DataSourceProvider} from "../../data/DataSourceProvider";
 import * as React from "react";
 import PhotoView from "react-native-photo-view";
 

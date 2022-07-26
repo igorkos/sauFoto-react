@@ -1,9 +1,9 @@
 import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfiguration} from "react-native-app-auth";
 import {ServiceTokens} from "./DataServiceConfig";
 import {LoadImagesResponse} from "./DataSourceProvider";
-import {Log} from "../hooks/log";
+import {Log} from "../utils/log";
 import {SaufotoAlbum, SaufotoImage, SaufotoMedia, SaufotoObjectType, ServiceImportEntry} from "./watermelon/SaufotoImage";
-import {ThumbSize} from "../constants/Images";
+import {ThumbSize} from "../styles/Images";
 import {ServiceType} from "./ServiceType";
 import {ImportObject} from "./watermelon/ImportObject";
 

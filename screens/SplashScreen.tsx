@@ -7,16 +7,16 @@ import {
   TouchableOpacity, Platform, PermissionsAndroid,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import Colors from "../constants/Colors";
+import Colors from "../styles/Colors";
 import LinearGradient from "react-native-linear-gradient";
-import {theme} from "../constants/themes";
+import {theme} from "../styles/themes";
 import * as Animatable from 'react-native-animatable';
-import {AuthContext} from "../components/context";
+import {AuthContext} from "../styles/context";
 import users from "../stacks/users";
 import { Camera} from 'expo-camera';
-import {Log} from "../hooks/log";
+import {Log} from "../utils/log";
 import {useEffect} from "react";
-import {screenWidth} from "../constants/Layout";
+import {screenWidth} from "../styles/Layout";
 
 // @ts-ignore
 export function SplashScreen({navigation}){

@@ -11,7 +11,7 @@ import 'localstorage-polyfill';
 import Navigation from './navigation';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {useEffect} from "react";
-import {getPlaceholderUri} from "./constants/Images";
+import {getPlaceholderUri} from "./styles/Images";
 
 export default function App() {
     useEffect( () => {

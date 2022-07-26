@@ -6,11 +6,11 @@
 import * as React from 'react';
 import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/native';
 import {DrawerNavigator} from './DrawerNavigator';
-import {theme} from "../constants/themes";
+import {theme} from "../styles/themes";
 import AsyncStorage from "@react-native-community/async-storage";
-import {AuthContext} from '../components/context';
+import {AuthContext} from '../styles/context';
 import {Provider as PaperProvider,} from 'react-native-paper';
-import {Log} from "../hooks/log";
+import {Log} from "../utils/log";
 import RootStackScreen from "../screens/RootStackScreen";
 import {StatusBar} from "react-native";
 import {useMemo, useReducer} from "react";

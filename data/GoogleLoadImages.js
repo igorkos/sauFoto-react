@@ -1,6 +1,6 @@
 import { self } from 'react-native-threads';
 import './config';
-import {Log} from "../hooks/log";
+import {Log} from "../utils/log";
 
 let count = 0;
 

@@ -1,16 +1,21 @@
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
-import {RootStackParamList, RootTabParamList} from "../screens/drawer/types";
+import {RootTabParamList} from "../screens/drawer/types";
 import {getFocusedRouteNameFromRoute} from "@react-navigation/native";
 import * as React from "react";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CameraScreen from "../screens/Camera";
-import {theme} from "../constants/themes";
-import {GalleryAlbumsNavigator} from "../screens/Albums";
-import {NavigationDrawerBack, NavigationDrawerLeft} from "../components/NavigationBar/DrawerButtons";
+import {theme} from "../styles/themes";
+import {AlbumAddImagesScreen, AlbumImagesScreen, GalleryAlbumsNavigator} from "../screens/Albums";
+import {
+    HeaderNavigationRight,
+    NavigationDrawerBack,
+    NavigationDrawerLeft,
+} from "../screens/compnents/DrawerButtons";
 import {GalleryImagesNavigator, SaufotoGalleryPreviewScreen} from "../screens/ImageGallery";
 import { ColorValue } from "react-native";
 import {useLayoutEffect} from "react";
+import {ActionEvents} from "../screens/types/ActionEvents";
 
 /**
  * A bottom tab navigator displays tab buttons on the bottom of the display to switch screens.
@@ -44,6 +49,30 @@ export function RootNavigator({navigation}) {
                     headerTintColor: theme.colors.text,
                     headerLeft: () => (
                         <NavigationDrawerBack navigationProps={navigation}/>
+                    ),
+                }}/>
+                <Stack.Screen name="SaufotoAlbumImages" component={AlbumImagesScreen} options={{
+                    headerShown: true,
+                    title: "",
+                    headerStyle: {backgroundColor: theme.colors.headerBackground,},
+                    headerTintColor: theme.colors.text,
+                    headerLeft: () => (
+                        <NavigationDrawerBack navigationProps={navigation}/>
+                    ),
+                    headerRight: () => (
+                        <HeaderNavigationRight actions={[ActionEvents.addImages]}/>
+                    ),
+                }}/>
+                <Stack.Screen name="SaufotoAlbumAddImages" component={AlbumAddImagesScreen} options={{
+                    headerShown: true,
+                    title: "",
+                    headerStyle: {backgroundColor: theme.colors.headerBackground,},
+                    headerTintColor: theme.colors.text,
+                    headerLeft: () => (
+                        <NavigationDrawerBack navigationProps={navigation}/>
+                    ),
+                    headerRight: () => (
+                        <HeaderNavigationRight actions={[ActionEvents.addToAlbum]}/>
                     ),
                 }}/>
             </Stack.Group>

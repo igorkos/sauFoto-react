@@ -1,13 +1,15 @@
 import * as React from "react";
-import {theme} from "../constants/themes";
+import {theme} from "../styles/themes";
 import {
+    HeaderNavigationRight,
     NavigationDrawerBack,
-    NavigationDrawerLeft,
+    NavigationDrawerLeft, NavigationDrawerRightAdd,
     NavigationDrawerRightImportImages
-} from "../components/NavigationBar/DrawerButtons";
+} from "./compnents/DrawerButtons";
 import {ServiceType} from "../data/ServiceType";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
-import {photosListView} from "./drawer/PhotosCollectionList";
+import {photosListView} from "./compnents/PhotosCollectionList";
+import {ActionEvents} from "./types/ActionEvents";
 
 const Stack = createNativeStackNavigator();
 
@@ -23,16 +25,13 @@ export function GalleryAlbumsNavigator({navigation}) {
                 headerLeft: () => (
                     <NavigationDrawerLeft navigationProps={navigation} />
                 ),
-            }}/>
-            <Stack.Screen name="SaufotoAlbumImages" component={AlbumImagesScreen} options={{
-                headerShown: true,
-                title: "",
-                headerStyle: {backgroundColor: theme.colors.headerBackground,},
-                headerTintColor: theme.colors.text,
-                headerLeft: () => (
-                    <NavigationDrawerBack navigationProps={navigation}/>
+                headerRight: () => (
+                    <HeaderNavigationRight actions={[ActionEvents.addAlbum]}/>
                 ),
             }}/>
+            <Stack.Group screenOptions={{presentation: 'modal', headerShown: true,}}>
+
+            </Stack.Group>
         </Stack.Navigator>
     );
 }
@@ -43,6 +42,11 @@ function AlbumsScreen({ navigation, route }) {
 }
 
 // @ts-ignore
-function AlbumImagesScreen({ navigation, route }) {
+export function AlbumImagesScreen({ navigation, route }) {
     return photosListView(navigation, route, ServiceType.Saufoto, false, false)
+}
+
+// @ts-ignore
+export function AlbumAddImagesScreen({ navigation, route }) {
+    return photosListView(navigation, route, ServiceType.Saufoto, false, true)
 }

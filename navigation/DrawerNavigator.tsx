@@ -7,7 +7,7 @@ import {RootNavigator} from './BottomTabNavigation';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {CameraNavigator} from "../screens/drawer/CameraImport";
 import {SplashScreen} from "../screens/SplashScreen";
-import {Log} from "../hooks/log";
+import {Log} from "../utils/log";
 import {SaufotoAlbum} from "../data/watermelon/SaufotoImage";
 import {GoogleNavigator} from "../screens/drawer/GooglePhotos";
 import {useMemo} from "react";

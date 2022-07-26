@@ -1,7 +1,7 @@
 import * as React from "react";
 import {Platform, StyleSheet, StatusBar, TouchableOpacity, Text} from 'react-native';
 import { Camera, CameraType } from 'expo-camera';
-import {View} from "../components/Themed";
+import {View} from "../styles/Themed";
 import {useState} from "react";
 
 export default function CameraScreen() {

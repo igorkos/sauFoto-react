@@ -1,9 +1,9 @@
 import * as React from "react";
 import * as MediaLibrary from "expo-media-library";
-import {Log} from "../hooks/log";
+import {Log} from "../utils/log";
 import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfiguration} from "react-native-app-auth";
 import {PermissionStatus} from "expo-modules-core/src/PermissionsInterface";
-import {ThumbSize} from "../constants/Images";
+import {ThumbSize} from "../styles/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
 import {ServiceTokens} from "./DataServiceConfig";
@@ -56,7 +56,7 @@ export namespace CameraProvider {
 
             Log.debug("Loading Camera Roll images: " + photosTemp.assets.length)
 
-            count += await addToTable('ImportObject', photosTemp.assets, ServiceType.Camera, (root === null ? '' : root),
+            count += await addToTable(photosTemp.assets, ServiceType.Camera, (root === null ? '' : root),
                 (_item: any) => { return SaufotoObjectType.Image }, 'filename', 'uri')
 
             Log.debug("Added Camera roll  entries: " + count)
