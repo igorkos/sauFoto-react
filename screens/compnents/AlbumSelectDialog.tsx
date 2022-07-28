@@ -1,13 +1,6 @@
 import * as React from "react";
-import {
-    StyleSheet,
-    Text,
-    ScrollView,
-    TouchableOpacity, TextInput
-} from "react-native";
-import {View} from "../../styles/Themed";
+import {StyleSheet, TextInput} from "react-native";
 import {useEffect, useState} from "react";
-import {SaufotoAlbum} from "../../data/watermelon/SaufotoImage";
 import {database} from "../../index";
 import {Log} from "../../utils/log";
 import {Subscription} from "rxjs";
@@ -17,6 +10,8 @@ import {
     SinglePickerMaterialDialog
 } from "react-native-material-dialog";
 import {array} from "prop-types";
+import {theme} from "../../styles/themes";
+import {SaufotoAlbum} from "../../data/watermelon/SaufotoAlbum";
 
 
 interface AlbumItem extends PickerItem{
@@ -67,6 +62,10 @@ export const NewAlbumDialog = ( props:{onOk:(name:string|null)=> void, onCancel:
     return (
         <MaterialDialog
             visible={true}
+            titleColor={theme.colors.text}
+            // @ts-ignore
+            backgroundColor={theme.colors.background}
+            colorAccent={theme.colors.text}
             title={"Create album"}
             onOk={() => {
                 props.onOk(text)
@@ -75,16 +74,26 @@ export const NewAlbumDialog = ( props:{onOk:(name:string|null)=> void, onCancel:
                 props.onCancel()
             }}>
             <TextInput
+                style={styles.inputText}
                 onChangeText={(text) => {
                     setText(text)
                 }}
                 placeholder="New album name"
+                placeholderTextColor={theme.colors.tint}
             />
         </MaterialDialog>
     )
 }
 
 const styles = StyleSheet.create({
+    inputText: {
+        fontSize: 16,
+        numberOfLines: 1,
+        ellipsizeMode: 'tail',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color:theme.colors.text
+    },
     scrollViewContainer: {
         paddingTop: 8
     },

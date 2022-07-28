@@ -56,7 +56,7 @@ export function RootNavigator({navigation}) {
                         <NavigationDrawerBack navigationProps={navigation}/>
                     ),
                     headerRight: () => (
-                        <HeaderNavigationRight actions={[ActionEvents.selectImages, ActionEvents.addImages]}/>
+                        <HeaderNavigationRight actions={[ActionEvents.selectImages, ActionEvents.addImages, ActionEvents.deleteAlbum]}/>
                     ),
                 }}/>
                 <Stack.Screen name="SaufotoAlbumAddImages" component={AlbumAddImagesScreen} options={{

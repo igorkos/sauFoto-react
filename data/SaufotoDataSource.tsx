@@ -2,10 +2,10 @@ import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfigu
 import {ServiceTokens} from "./DataServiceConfig";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {Log} from "../utils/log";
-import {SaufotoAlbum, SaufotoImage, SaufotoMedia, SaufotoObjectType, ServiceImportEntry} from "./watermelon/SaufotoImage";
+import {SaufotoImage} from "./watermelon/SaufotoImage";
 import {ThumbSize} from "../styles/Images";
-import {ServiceType} from "./ServiceType";
 import {ImportObject} from "./watermelon/ImportObject";
+import {SaufotoAlbum} from "./watermelon/SaufotoAlbum";
 
 
 export namespace SaufotoProvider {

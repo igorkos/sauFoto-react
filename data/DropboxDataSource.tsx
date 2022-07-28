@@ -1,7 +1,7 @@
 import * as React from "react";
 import {Log} from "../utils/log";
 import {Dropbox, DropboxResponse, files} from "dropbox";
-import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage"
+import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage"
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ServiceType} from "./ServiceType";
@@ -13,6 +13,7 @@ import ImageResizer from "react-native-image-resizer";
 // @ts-ignore
 import {MediaInfoMetadata} from "dropbox/types/dropbox_types";
 import {cacheImageData} from "../utils/FileUtils";
+import {SaufotoAlbum} from "./watermelon/SaufotoAlbum";
 
 const okFileExtensions = Array(".jpg", ".jpeg", ".png", ".gif", ".heic")
 

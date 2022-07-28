@@ -2,9 +2,10 @@ import * as React from "react";
 import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfiguration} from "react-native-app-auth";
 import {ThumbSize} from "../styles/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
-import {SaufotoAlbum, SaufotoImage} from "./watermelon/SaufotoImage";
+import {SaufotoImage} from "./watermelon/SaufotoImage";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ImportObject} from "./watermelon/ImportObject";
+import {SaufotoAlbum} from "./watermelon/SaufotoAlbum";
 
 export namespace TestProvider {
 

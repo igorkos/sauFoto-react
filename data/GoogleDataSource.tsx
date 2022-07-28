@@ -1,5 +1,5 @@
 import {Log} from "../utils/log";
-import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
+import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
 import {ThumbSize} from "../styles/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
@@ -8,6 +8,7 @@ import {ImportObject} from "./watermelon/ImportObject";
 import {addToTable} from "./watermelon/DataSourceUtils";
 import {cacheImage} from "../utils/FileUtils";
 import {Preferences} from "./PreferenceStorage";
+import {SaufotoAlbum} from "./watermelon/SaufotoAlbum";
 
 export namespace GoogleProvider {
 

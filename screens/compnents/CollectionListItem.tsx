@@ -1,4 +1,4 @@
-import {SaufotoAlbum, SaufotoImage, SaufotoObjectType, SaufotoSyncAction} from "../../data/watermelon/SaufotoImage";
+import {SaufotoImage, SaufotoObjectType, SaufotoSyncAction} from "../../data/watermelon/SaufotoImage";
 import {ImportObject} from "../../data/watermelon/ImportObject";
 import {ServiceType} from "../../data/ServiceType";
 import * as React from "react";
@@ -11,6 +11,7 @@ import {Text, View} from "../../styles/Themed";
 import {Image, StyleSheet, TouchableOpacity} from "react-native";
 import FastImage from "react-native-fast-image";
 import {theme} from "../../styles/themes";
+import {SaufotoAlbum} from "../../data/watermelon/SaufotoAlbum";
 
 
 export enum CollectionItemRenderStates {
@@ -26,6 +27,15 @@ export enum CollectionItemRenderStates {
 function isSelectionEnabled(mode: CollectionItemRenderStates ): boolean {
     switch (mode) {
         case CollectionItemRenderStates.GallerySelect:
+        case CollectionItemRenderStates.Import:
+        case CollectionItemRenderStates.ImportAlbumsSelect: { return true}
+        default: return false
+    }
+}
+
+function isImport(mode: CollectionItemRenderStates ): boolean {
+    switch (mode) {
+        case CollectionItemRenderStates.ImportAlbums:
         case CollectionItemRenderStates.Import:
         case CollectionItemRenderStates.ImportAlbumsSelect: { return true}
         default: return false
@@ -115,8 +125,9 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
             id: props.item.id,
             index: props.index,
             uri: props.item.smallThumb,
-            count: (props.item instanceof SaufotoAlbum && props.item.count !== undefined) ? props.item.count:0,
-            selected: !(props.item instanceof SaufotoAlbum) ? props.item.selected :false,
+            // @ts-ignore
+            count: (props.item.count !== undefined) ? props.item.count:0,
+            selected: props.item.selected,
             error: false,
             title: props.item.title,
             debug: props.debug === undefined ? false:props.debug,
@@ -214,6 +225,7 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
         if(!this.state.error) {
             if (isSelectionEnabled(this.props.renderMode)){
                 const media = this.props.item
+                if(isImport(this.props.renderMode) && this.state.syncOp !== SaufotoSyncAction.None) return
                 media.setSelected(!media.selected).then(() => {
                     this.setState({selected: media.selected})
                 })
@@ -233,7 +245,7 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
     }
 
     StatusView(props: {mode:CollectionItemRenderStates, source:any} ) {
-        if( props.mode !== CollectionItemRenderStates.ImportFlatList ) {
+        if( props.mode === CollectionItemRenderStates.ImportFlatList ) {
             return null
         }
         return (<Image style={styles.selectStyle} source={props.source}/>)

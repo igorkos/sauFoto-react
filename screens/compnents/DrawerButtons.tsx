@@ -47,7 +47,9 @@ export const HeaderNavigationRight =  ( props: {actions: ActionEvents[]}) => {
         const i = props.index
         const onSelected = () => {
             Log.debug("Select " + props.actions[i] + " pressed")
-            setFirstSelected(!firstSelected)
+            if(props.index === 0 ) {
+                setFirstSelected(!firstSelected)
+            }
             // @ts-ignore
             PubSub.publish(eventsSubscriber, createAction(ActionEventsMenu[props.actions[i]].action, firstSelected));
         }

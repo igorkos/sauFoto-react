@@ -10,7 +10,8 @@ export enum ActionEvents {
     addToAlbum = 'addToAlbum',
     selectImages = 'selectImages',
     importToAlbum = 'importToAlbum',
-    delete = 'delete'
+    delete = 'delete',
+    deleteAlbum = 'deleteAlbum'
 }
 
 export interface ActionEventsMenuItem{
@@ -29,6 +30,7 @@ export const  ActionEventsMenu = {
     selectImages: {action: ActionEvents.selectImages, title:'Select',selectedTitle: 'Cancel', icon:null},
     importToAlbum: {action: ActionEvents.importToAlbum, title:'Add to Album',selectedTitle: null, icon:'import'},
     delete: {action: ActionEvents.delete, title:null, selectedTitle: null, icon:'trash-can-outline'},
+    deleteAlbum: {action: ActionEvents.deleteAlbum, title:'Delete album', selectedTitle: null, icon:'trash-can-outline'},
 }
 
 export interface ActionEvent{

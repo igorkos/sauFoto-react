@@ -5,12 +5,13 @@ import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfigu
 import {PermissionStatus} from "expo-modules-core/src/PermissionsInterface";
 import {ThumbSize} from "../styles/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
-import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
+import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ServiceType} from "./ServiceType";
 import {ImportObject} from "./watermelon/ImportObject";
 import {addToTable} from "./watermelon/DataSourceUtils";
 import {cacheImage, cacheImageData} from "../utils/FileUtils";
+import {SaufotoAlbum} from "./watermelon/SaufotoAlbum";
 
 export namespace CameraProvider {
 

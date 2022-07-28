@@ -11,21 +11,22 @@ export namespace ImportProvider {
             const entry = images.prepareCreate(entry => {
                     entry.syncOp = SaufotoSyncAction.Pending
                     entry.title = value.title
-                    entry.dateAdded = new Date(Date.now())
                     entry.thumbs = value.thumbs
                     entry.import.set(value)
                     entry.type = SaufotoObjectType.Image
                     entry.origin = value.origin
                 })
-            await value.setSyncOp(SaufotoSyncAction.Pending)
-            await value.setSelected(false)
+            value.prepareUpdate((entry) => {
+                entry.selected = false
+                entry.syncOp = SaufotoSyncAction.Pending
+            })
             newItems.push(entry)
         }
 
         if( newItems.length > 0 ) {
             await database.write(async () => {
                 await database.batch(...newItems)
-                return true
+                await database.batch(...entries)
             })
         }
     }

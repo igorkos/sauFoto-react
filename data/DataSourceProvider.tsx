@@ -1,5 +1,5 @@
 import {authorizeWith, isAuthorized} from "./AuthorizationProvicer";
-import {SaufotoAlbum, SaufotoImage} from "./watermelon/SaufotoImage";
+import {SaufotoImage} from "./watermelon/SaufotoImage";
 import {DropboxProvider} from "./DropboxDataSource";
 import {GoogleProvider} from "./GoogleDataSource";
 import {ThumbSize} from "../styles/Images";
@@ -9,6 +9,7 @@ import {ServiceType} from "./ServiceType";
 import {ImportObject} from "./watermelon/ImportObject";
 import {AuthError} from "./DataServiceConfig";
 import {Log} from "../utils/log";
+import {SaufotoAlbum} from "./watermelon/SaufotoAlbum";
 
 export const DataProviders = {
     Dropbox: {

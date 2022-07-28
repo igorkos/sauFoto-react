@@ -5,13 +5,7 @@ import * as React from "react";
 import {useCallback, useEffect, useRef, useState} from "react";
 import {theme} from "../../styles/themes";
 import {DataSourceProvider, LoadImagesResponse} from "../../data/DataSourceProvider";
-import {
-    SaufotoAlbum,
-    SaufotoImage,
-    SaufotoObjectType,
-    subscribeAlbums,
-    subscribeImages,
-} from "../../data/watermelon/SaufotoImage";
+import {SaufotoImage, SaufotoObjectType,} from "../../data/watermelon/SaufotoImage";
 import {ServiceType} from "../../data/ServiceType";
 import {FlatListItemSizes, screenWidth} from "../../styles/Layout";
 import {authorizeWith} from "../../data/AuthorizationProvicer";
@@ -24,12 +18,19 @@ import {ImportProvider} from "../../data/ImportProvider";
 import Carousel from "react-native-snap-carousel";
 import CollectionPreviewItem from "./CollectionPreviewItem";
 import {NewAlbumDialog} from "./AlbumSelectDialog";
-import {addImagesToAlbum, addSaufotoAlbum, deleteImages} from "../../data/watermelon/DataSourceUtils";
+import {
+    addImagesToAlbum,
+    addSaufotoAlbum,
+    deleteAlbum,
+    deleteImages,
+    subscribeAlbums, subscribeImages
+} from "../../data/watermelon/DataSourceUtils";
 import {ActionEvent, ActionEvents, createAction, eventsSubscriber} from "../types/ActionEvents";
 import {database} from "../../index";
 import Colors from "../../styles/Colors";
 import {AlbumsPreviewBar} from "./AlbumsPreviewBar";
 import {SelectionBar} from "./SelectionBar";
+import {SaufotoAlbum} from "../../data/watermelon/SaufotoAlbum";
 
 
 const PubSub = require('pubsub-js');
@@ -70,6 +71,10 @@ export const photosListView = (navigation, route, type: ServiceType, albums: boo
         await deleteImages(entries, root)
     }
 
+    const albumDelete = async (albumId: string) => {
+        await deleteAlbum(albumId)
+    }
+
     const addToAlbum = async (entries: SaufotoImage[]) => {
         await addImagesToAlbum(entries, root!)
     }
@@ -103,6 +108,7 @@ export const photosListView = (navigation, route, type: ServiceType, albums: boo
                 Log.debug("PhotosListView -> select all")
                 selectAll(objects as ImportObject[]).then(() => {
                     Log.debug("PhotosListView -> All selected")
+                    setEvent(createAction(ActionEvents.none))
                 } )
                 break
             }
@@ -113,11 +119,13 @@ export const photosListView = (navigation, route, type: ServiceType, albums: boo
                 Log.debug("PhotosListView -> importToGallery selected" + toImport)
                 importAdd(toImport).then(() => {
                     Log.debug("PhotosListView -> Added to import queue")
+                    setEvent(createAction(ActionEvents.none))
                 })
                 break;
             }
             case ActionEvents.addAlbum : {
                 setIsAddAlbum(true)
+                setEvent(createAction(ActionEvents.none))
                 break;
             }
             case ActionEvents.addToAlbum: {
@@ -127,6 +135,7 @@ export const photosListView = (navigation, route, type: ServiceType, albums: boo
                 Log.debug("PhotosListView -> importToGallery selected " + toAdd.length)
                 addToAlbum(toAdd).then(() => {
                     Log.debug("PhotosListView -> Added to album")
+                    navigation.goBack()
                 })
                 break
             }
@@ -154,12 +163,18 @@ export const photosListView = (navigation, route, type: ServiceType, albums: boo
                 Log.debug("PhotosListView -> delete selected " + toDelete)
                 imagesDelete(toDelete).then(() => {
                     Log.debug("PhotosListView -> Deleted images")
+                    setEvent(createAction(ActionEvents.none))
                 })
                 break
             }
-        }
-        if(events.event !== ActionEvents.none) {
-            setEvent(createAction(ActionEvents.none))
+            case ActionEvents.deleteAlbum:{
+                Log.debug("PhotosListView -> delete album selected " + root)
+                albumDelete(root!).then(() => {
+                    Log.debug("PhotosListView -> Deleted images")
+                    navigation.goBack()
+                })
+                break
+            }
         }
     },[events])
 
@@ -304,6 +319,7 @@ export const photosListView = (navigation, route, type: ServiceType, albums: boo
             if( albums ) {
                 return albumsPreview ? CollectionItemRenderStates.ImportAlbumsSelect:CollectionItemRenderStates.ImportAlbums
             }
+            if(type === ServiceType.Saufoto)  return CollectionItemRenderStates.GallerySelect
             return CollectionItemRenderStates.Import
         }
         return CollectionItemRenderStates.Gallery
@@ -319,11 +335,11 @@ export const photosListView = (navigation, route, type: ServiceType, albums: boo
     },[albumsPreview,actionBarVisible])
 
     const compareItems = (a: ImportObject, b: ImportObject):boolean => {
-        return a.id === b.id;
+        return a?.id === b?.id;
     }
 
     const keyItem = (meta: SpeedyListItemMeta<ImportObject>):string => {
-        return meta.item.id
+        return meta.item?.id !== undefined ?  meta.item?.id:"undefined"
     }
 
     //Top level item selection processing
