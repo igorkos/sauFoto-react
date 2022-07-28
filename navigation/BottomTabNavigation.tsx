@@ -2,19 +2,15 @@ import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {RootTabParamList} from "../screens/drawer/types";
 import {getFocusedRouteNameFromRoute} from "@react-navigation/native";
 import * as React from "react";
+import {useLayoutEffect} from "react";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CameraScreen from "../screens/Camera";
 import {theme} from "../styles/themes";
 import {AlbumAddImagesScreen, AlbumImagesScreen, GalleryAlbumsNavigator} from "../screens/Albums";
-import {
-    HeaderNavigationRight,
-    NavigationDrawerBack,
-    NavigationDrawerLeft,
-} from "../screens/compnents/DrawerButtons";
+import {HeaderNavigationRight, NavigationDrawerBack, NavigationDrawerLeft,} from "../screens/compnents/DrawerButtons";
 import {GalleryImagesNavigator, SaufotoGalleryPreviewScreen} from "../screens/ImageGallery";
-import { ColorValue } from "react-native";
-import {useLayoutEffect} from "react";
+import {ColorValue} from "react-native";
 import {ActionEvents} from "../screens/types/ActionEvents";
 
 /**
@@ -60,7 +56,7 @@ export function RootNavigator({navigation}) {
                         <NavigationDrawerBack navigationProps={navigation}/>
                     ),
                     headerRight: () => (
-                        <HeaderNavigationRight actions={[ActionEvents.addImages]}/>
+                        <HeaderNavigationRight actions={[ActionEvents.selectImages, ActionEvents.addImages]}/>
                     ),
                 }}/>
                 <Stack.Screen name="SaufotoAlbumAddImages" component={AlbumAddImagesScreen} options={{
@@ -124,9 +120,10 @@ export const BottomTabNavigator = ({navigation, route}) => {
 
     return (
         <BottomTab.Navigator
+            id="BottomTab"
             initialRouteName="GalleryScreen"
             screenOptions={{
-                headerShown: false
+                headerShown: false,
             }}>
             <BottomTab.Screen
                 name="GalleryScreen"
@@ -134,6 +131,7 @@ export const BottomTabNavigator = ({navigation, route}) => {
                 options={{
                     title: getHeaderTitle('GalleryScreen'),
                     tabBarIcon: ({color}) => getTabIcon('GalleryScreen', color),
+
                     }}
             />
             <BottomTab.Screen

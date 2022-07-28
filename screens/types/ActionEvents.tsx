@@ -9,23 +9,26 @@ export enum ActionEvents {
     addImages = 'addImages',
     addToAlbum = 'addToAlbum',
     selectImages = 'selectImages',
-    importToAlbum = 'importToAlbum'
+    importToAlbum = 'importToAlbum',
+    delete = 'delete'
 }
 
 export interface ActionEventsMenuItem{
     action: ActionEvents,
     title: string | null,
     icon: string | null,
+    selectedTitle:string | null,
 }
 export const  ActionEventsMenu = {
-    none: {action: ActionEvents.none, title:null, icon:null},
-    selectAll: {action: ActionEvents.selectAll, title:'Select all', icon:null},
-    importToGallery: {action: ActionEvents.importToGallery, title:'Add to Gallery', icon:null},
-    addAlbum: {action: ActionEvents.addAlbum, title:null, icon:'plus'},
-    addImages: {action: ActionEvents.addImages, title:null, icon:'plus'},
-    addToAlbum: {action: ActionEvents.addToAlbum, title:'Add photos', icon:null},
-    selectImages: {action: ActionEvents.selectImages, title:'Select', icon:null},
-    importToAlbum: {action: ActionEvents.none, title:'Add to Album', icon:null},
+    none: {action: ActionEvents.none, title:null, selectedTitle: null, icon:null},
+    selectAll: {action: ActionEvents.selectAll, title:'Select all', selectedTitle:'Unselect all', icon:null},
+    importToGallery: {action: ActionEvents.importToGallery, title:'Add to Gallery', selectedTitle: null, icon:'import'},
+    addAlbum: {action: ActionEvents.addAlbum, title:null,selectedTitle: null, icon:'plus'},
+    addImages: {action: ActionEvents.addImages, title:'Add photos',selectedTitle: null, icon:'plus'},
+    addToAlbum: {action: ActionEvents.addToAlbum, title:'Add photos',selectedTitle: null, icon:'plus'},
+    selectImages: {action: ActionEvents.selectImages, title:'Select',selectedTitle: 'Cancel', icon:null},
+    importToAlbum: {action: ActionEvents.importToAlbum, title:'Add to Album',selectedTitle: null, icon:'import'},
+    delete: {action: ActionEvents.delete, title:null, selectedTitle: null, icon:'trash-can-outline'},
 }
 
 export interface ActionEvent{

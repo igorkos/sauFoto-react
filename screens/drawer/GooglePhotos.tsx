@@ -6,9 +6,8 @@ import {
     HeaderNavigationRight,
     NavigationDrawerBack,
 } from "../compnents/DrawerButtons";
-import useColorScheme from "../../styles/useColorScheme";
 import {getFocusedRouteNameFromRoute} from "@react-navigation/native";
-import {RootTabParamList, RootTabScreenProps} from "./types";
+import {RootTabParamList} from "./types";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {ServiceType} from "../../data/ServiceType";
@@ -48,17 +47,15 @@ export function GoogleNavigator({navigation}) {
 // @ts-ignore
 function GooglePhotosScreen({navigation, route}) {
     return photosListView(navigation, route, ServiceType.Google, false, true)
-};
+}
 // @ts-ignore
 function GoogleAlbumsScreen({navigation, route}) {
     return photosListView(navigation, route, ServiceType.Google, true, true)
-};
+}
 
 const BottomTab = createBottomTabNavigator<RootTabParamList>();
 // @ts-ignore
 const GoogleTabNavigator = ({navigation, route}) => {
-    const colorScheme = useColorScheme();
-
     function getHeaderTitle(route: string) {
         switch (route) {
             case 'ImagesScreen':
@@ -83,7 +80,7 @@ const GoogleTabNavigator = ({navigation, route}) => {
         }
 
         return <Icon name={iconName} color={color} size={24} />;
-    };
+    }
 
     React.useLayoutEffect(() => {
         const routeName = getFocusedRouteNameFromRoute(route) ?? 'ImagesScreen';
@@ -102,10 +99,10 @@ const GoogleTabNavigator = ({navigation, route}) => {
             <BottomTab.Screen
                 name="ImagesScreen"
                 component={GooglePhotosScreen}
-                options={({ navigation }: RootTabScreenProps<'ImagesScreen'>) => ({
+                options={{
                     title: getHeaderTitle('ImagesScreen'),
                     tabBarIcon: ({color}) => getTabIcon('ImagesScreen', color),
-                })}
+                }}
             />
             <BottomTab.Screen
                 name="Albums"

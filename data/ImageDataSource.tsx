@@ -2,7 +2,7 @@ import * as React from "react";
 import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfiguration} from "react-native-app-auth";
 import {ThumbSize} from "../styles/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
-import {SaufotoImage} from "./watermelon/SaufotoImage";
+import {SaufotoAlbum, SaufotoImage} from "./watermelon/SaufotoImage";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ImportObject} from "./watermelon/ImportObject";
 
@@ -41,7 +41,7 @@ export namespace TestProvider {
         })
     }
 
-    export async function getThumbsData( config: ServiceTokens, object: ImportObject|SaufotoImage, size: ThumbSize): Promise<string> {
+    export async function getThumbsData( config: ServiceTokens, object: ImportObject|SaufotoImage|SaufotoAlbum, size: ThumbSize): Promise<string> {
         const uri = await object.getOriginalUri()
         const thumb = await object.createThumb(size, uri )
         return new Promise( (resolve) => {
@@ -54,7 +54,7 @@ export namespace TestProvider {
             resolve("")
         })
     }
-    export function albumId( _media: ImportObject|SaufotoImage):  string | null {
+    export function albumId( _media: ImportObject|SaufotoImage|SaufotoAlbum):  string | null {
         return null
     }
 }

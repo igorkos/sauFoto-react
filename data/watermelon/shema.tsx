@@ -37,7 +37,6 @@ export default appSchema({
                 {name: 'title', type: 'string'},
                 {name: 'description', type: 'string', isOptional: true},
                 {name: 'dateTaken', type: 'string', isOptional: true},
-                {name: 'dateAdded', type: 'string'},
                 {name: 'media_info', type: 'string', isOptional: true},
 
                 {name: 'originalImageBSFile', type: 'string', isOptional: true},
@@ -49,6 +48,7 @@ export default appSchema({
                 {name: 'cashedData', type: 'string', isOptional: true},
 
                 {name: 'selected', type: 'boolean'},
+                { name: 'created_at', type: 'number' },
             ],
         }),
         tableSchema({
@@ -60,13 +60,17 @@ export default appSchema({
                 {name: 'thumbs', type: 'string', isOptional: true, isIndexed: true},
                 {name: 'title', type: 'string'},
                 {name: 'description', type: 'string', isOptional: true},
-                {name: 'dateAdded', type: 'string'},
 
                 {name: 'count', type: 'number'},
                 {name: 'images', type: 'string'},
 
                 {name: 'import_id', type: 'string', isIndexed: true},
                 {name: 'origin', type: 'string'},
+
+                {name: 'keyItem', type: 'string'},
+
+                {name: 'selected', type: 'boolean'},
+                { name: 'created_at', type: 'number' },
             ],
         }),
         tableSchema({
@@ -74,6 +78,7 @@ export default appSchema({
             columns: [
                 {name: 'album_id', type: 'string', isIndexed: true},
                 {name: 'image_id', type: 'string', isIndexed: true},
+                { name: 'created_at', type: 'number' },
             ]
         }),
     ]

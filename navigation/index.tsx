@@ -14,6 +14,7 @@ import {Log} from "../utils/log";
 import RootStackScreen from "../screens/RootStackScreen";
 import {StatusBar} from "react-native";
 import {useMemo, useReducer} from "react";
+import {MenuProvider} from "react-native-popup-menu";
 
 const initialLoginState = {
     isLoading: true,
@@ -112,6 +113,7 @@ export default function Navigation() {
 
 
     return (
+        <MenuProvider>
         <PaperProvider theme={theme}>
             <AuthContext.Provider value={authContext}>
                 <NavigationContainer theme={theme} >
@@ -120,5 +122,6 @@ export default function Navigation() {
                 </NavigationContainer>
             </AuthContext.Provider>
         </PaperProvider>
+        </MenuProvider>
   );
 }

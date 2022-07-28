@@ -5,7 +5,7 @@ import {AuthConfiguration, AuthorizeResult, BaseAuthConfiguration, RevokeConfigu
 import {PermissionStatus} from "expo-modules-core/src/PermissionsInterface";
 import {ThumbSize} from "../styles/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
-import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
+import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ServiceType} from "./ServiceType";
 import {ImportObject} from "./watermelon/ImportObject";
@@ -68,7 +68,7 @@ export namespace CameraProvider {
         return {nextPage: null, items: [], hasMore: false }
     }
 
-    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage, size: ThumbSize): Promise<string> {
+    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage|SaufotoAlbum, size: ThumbSize): Promise<string> {
         const uri = await object.getOriginalUri()
         return await (object as ImportObject).createThumb(size, uri)
     }
@@ -95,7 +95,7 @@ export namespace CameraProvider {
         return {nextPage: null, items: [], hasMore:false}
     }
 
-    export function albumId( media:ImportObject|SaufotoImage):  string | null{
+    export function albumId( media:ImportObject|SaufotoImage|SaufotoAlbum):  string | null{
         return (media as ImportObject).originId
     }
 }

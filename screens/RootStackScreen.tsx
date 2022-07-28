@@ -10,8 +10,3 @@ export default function RootStackScreen() {
             <RootStack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }}/>
         </RootStack.Navigator>)
 };
-
-
-/*
-<RootStack.Screen name="SigningScreen" component={SigningScreen}/>
- */

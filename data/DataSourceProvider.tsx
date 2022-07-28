@@ -59,7 +59,7 @@ export namespace DataSourceProvider {
         return  DataProviders[type].loadAlbums(config, root, page)
     }
 
-    export async function getThumbsData( type: ServiceType, object: ImportObject|SaufotoImage, size: ThumbSize): Promise<string> {
+    export async function getThumbsData( type: ServiceType, object: ImportObject|SaufotoImage|SaufotoAlbum, size: ThumbSize): Promise<string> {
         const provider = (type !== object.origin ? object.origin:type) as ServiceType
         //Log.debug("getThumbsData: request service " + type + " object service: " + object.origin + " auth: " + type)
         if( await isAuthorized(provider))

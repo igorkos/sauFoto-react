@@ -1,5 +1,5 @@
 import {Log} from "../utils/log";
-import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
+import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage";
 import {ThumbSize} from "../styles/Images";
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
@@ -307,12 +307,12 @@ export namespace GoogleProvider {
         return new Date(new Date().getTime() + minutes*60000);
     }
 
-    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage, size: ThumbSize): Promise<string> {
+    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage|SaufotoAlbum, size: ThumbSize): Promise<string> {
         let importObject:ImportObject
         if(object instanceof SaufotoImage ) {
             importObject =  await object.getImport()
         } else {
-            importObject = object
+            importObject = object as ImportObject
         }
 
         const image = await getImage(config, importObject.originId)
@@ -333,7 +333,7 @@ export namespace GoogleProvider {
         return uri
     }
 
-    export function albumId(media:ImportObject|SaufotoImage) : string | null {
+    export function albumId(media:ImportObject|SaufotoImage|SaufotoAlbum) : string | null {
         return (media as ImportObject).originId
     }
 }

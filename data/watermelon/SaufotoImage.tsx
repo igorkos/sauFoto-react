@@ -1,5 +1,5 @@
 
-import { ThumbSize } from "../../styles/Images";
+import {placeholderUri, ThumbSize} from "../../styles/Images";
 import {Model, Q} from "@nozbe/watermelondb";
 import {
     children,
@@ -7,7 +7,7 @@ import {
     field,
     immutableRelation,
     lazy,
-    reader,
+    reader, readonly,
     relation,
     text,
     writer
@@ -37,21 +37,18 @@ export class SaufotoImage extends Model {
     static associations = {
         album_image: {type: 'has_many', key: 'image_id'},
     }
-    /**
-     * Local import/export status
-     * @see SyncState
-     */
+
+    @readonly @date('created_at') createdAt!: Date
+    @readonly @text('type') type!: string
+    @readonly @text('origin') origin!: string
     @text('syncOp') syncOp!: string
-    @text('type') type!: string
     @text('thumbs') thumbs: string | undefined
     @text('title') title: string | undefined
     @text('description') description: string | undefined
     @date('dateTaken') dateTaken: Date | undefined
-    @date('dateAdded') dateAdded!: Date
     @text('media_info') media_info: string | undefined
     @text('originalImageBSFile') originalImageBSFile: string | undefined
     @text('editedImageBSFile') editedImageBSFile: string | undefined
-    @text('origin') origin!: string
     @text('cashedData') cashedData!: string
     @field('selected') selected!: boolean
 
@@ -103,7 +100,7 @@ export class SaufotoImage extends Model {
     async getOriginalUri(): Promise<string> {
         if( this.originalImageBSFile === null) {
             if( this.cashedData === null) {
-                const object = await this.getImport()
+                const object = await this.import.fetch()
                 return await object.getOriginalUri()
             }
             return this.cashedData!
@@ -113,7 +110,7 @@ export class SaufotoImage extends Model {
 
     async createThumb(size:ThumbSize, uri:string): Promise<string> {
         if( this.originalImageBSFile === null) {
-            const object = await this.getImport()
+            const object = await this.import.fetch()
             return await object.createThumb(size, uri)
         }
         return this.originalImageBSFile!
@@ -127,26 +124,52 @@ export class SaufotoAlbum extends Model {
     static associations = {
         album_image: { type: 'has_many', foreignKey: 'album_id' },
     }
-    @text('type') type!: string
+    @readonly @date('created_at') createdAt!: Date
+    @readonly @text('type') type!: string
+    @readonly @text('origin') origin!: string
     @text('syncOp') syncOp!: string
     @text('thumbs') thumbs: string | undefined
     @text('title') title: string | undefined
     @text('description') description: string | undefined
-    @date('dateAdded') dateAdded!: Date
+
     @field('count') count!: number
-    @text('origin') origin!: string
+    @field('selected') selected!: boolean
 
     @immutableRelation(Tables.Import, 'import_id') import!: any
+    @relation(Tables.Image, 'keyItem') keyItem!: any
 
     @writer async setCount(count: number) {
         this.update( record => record.count = count )
     }
 
-    @lazy
-    images = this.collections
-        .get(Tables.Image)
-        .query(
-            Q.on(Tables.AlbumImages, Q.where('album_id', this.id)));
+    @writer async setSelected(selected: boolean) {
+        this.update( record => record.selected = selected)
+    }
+
+    @reader async getCount() {
+        return this.count
+    }
+
+    async getOriginalUri(): Promise<string> {
+        const key = await this.keyItem.fetch()
+        if(key === null)  return placeholderUri.get('image_placeholder.png') as string
+        return await key.getOriginalUri()
+    }
+
+    getThumbUri(size: ThumbSize): string | null {
+        return thumbUri(this.thumbs, size)
+    }
+
+    get smallThumb() : string | null {
+        return thumbUri(this.thumbs, ThumbSize.THUMB_256)
+    }
+
+    async createThumb(size:ThumbSize, uri:string): Promise<string> {
+        const image = await this.keyItem.fetch()
+        if(image === null)  return placeholderUri.get('image_placeholder.png') as string
+        return await image.createThumb(size, uri)
+    }
+
 }
 
 // @ts-ignore

@@ -1,4 +1,4 @@
-import {SaufotoImage, SaufotoObjectType, SaufotoSyncAction} from "../../data/watermelon/SaufotoImage";
+import {SaufotoAlbum, SaufotoImage, SaufotoObjectType, SaufotoSyncAction} from "../../data/watermelon/SaufotoImage";
 import {ImportObject} from "../../data/watermelon/ImportObject";
 import {ServiceType} from "../../data/ServiceType";
 import * as React from "react";
@@ -12,34 +12,55 @@ import {Image, StyleSheet, TouchableOpacity} from "react-native";
 import FastImage from "react-native-fast-image";
 import {theme} from "../../styles/themes";
 
+
+export enum CollectionItemRenderStates {
+    Gallery,
+    GallerySelect,
+    GalleryAlbums,
+    Import,
+    ImportAlbums,
+    ImportAlbumsSelect,
+    ImportFlatList,
+}
+
+function isSelectionEnabled(mode: CollectionItemRenderStates ): boolean {
+    switch (mode) {
+        case CollectionItemRenderStates.GallerySelect:
+        case CollectionItemRenderStates.Import:
+        case CollectionItemRenderStates.ImportAlbumsSelect: { return true}
+        default: return false
+    }
+}
+
 interface ImageSourceState {
     id:string
     index: number
     uri: string | null
     count: number
-    type: SaufotoObjectType
     selected: boolean
     error: boolean
     title: string | null | undefined
     debug: boolean
     size: ThumbSize
     imageStyle: any
-    browse: boolean
     syncOp: SaufotoSyncAction
     isSelected?: boolean,
-    timer: any | null
+    timer: any | null,
+    renderMode:CollectionItemRenderStates,
 }
 
 interface ImageSourceProps {
-    item: ImportObject | SaufotoImage
-    browse: boolean
-    onSelected: (entry: ImportObject|SaufotoImage, index: number) => void
-    isSelected?: boolean,
-    onError: (error: any) => void
+    item: ImportObject | SaufotoImage | SaufotoAlbum
     index: any;
+
+    renderMode:CollectionItemRenderStates,
     dataProvider: ServiceType
+
+    isSelected?: boolean,
+
+    onSelected: (entry: ImportObject|SaufotoImage|SaufotoAlbum, index: number) => void
+    onError: (error: any) => void
     debug?: boolean | undefined
-    small:boolean
 }
 
 
@@ -52,8 +73,6 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
             index: -1,
             uri: null,
             count: 0,
-            browse: props.browse,
-            type: SaufotoObjectType.None,
             selected: false,
             error: false,
             title: null,
@@ -62,13 +81,14 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
             imageStyle: styles.imageStyle,
             syncOp: SaufotoSyncAction.None,
             isSelected: false,
-            timer:  null
+            timer:  null,
+            renderMode:CollectionItemRenderStates.Gallery
         }
         this.log("Create list item for id: "+ props.item.id)
     }
 
     static _imageStyle(props:ImageSourceProps) {
-        if( props.small ) {
+        if( props.renderMode ===  CollectionItemRenderStates.ImportFlatList) {
             if(props.isSelected) {
                 return ({
                     ...styles.imageStyleSmallSelected,
@@ -95,18 +115,17 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
             id: props.item.id,
             index: props.index,
             uri: props.item.smallThumb,
-            count: !(props.item instanceof ImportObject) || props.item.count === undefined ? 0:+props.item.count,
-            type: !(props.item instanceof SaufotoImage) ? (props.item.type as SaufotoObjectType)  : SaufotoObjectType.Image,
-            selected: !(props.item instanceof SaufotoImage) ? props.item.selected :false,
+            count: (props.item instanceof SaufotoAlbum && props.item.count !== undefined) ? props.item.count:0,
+            selected: !(props.item instanceof SaufotoAlbum) ? props.item.selected :false,
             error: false,
             title: props.item.title,
-            browse: props.browse,
             debug: props.debug === undefined ? false:props.debug,
             size: size,
             imageStyle: imageStyle,
             syncOp: props.item.syncOp as SaufotoSyncAction,
             isSelected: props.isSelected,
-            timer:null
+            timer:null,
+            renderMode: props.renderMode
         }
     }
 
@@ -139,8 +158,8 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
             this.log("Should update 'count' change id: "+ this.state.id)
             return true
         }
-        if(this.state.browse !== nextState.browse) {
-            this.log("Should update 'mode' change id: "+ this.state.id)
+        if(this.state.renderMode !== nextState.renderMode) {
+            this.log("Should update 'renderMode' change id: "+ this.state.id)
             return true
         }
         //this.log("Should update no change id: "+ this.state.id)
@@ -149,10 +168,10 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
 
     static getDerivedStateFromProps(props: ImageSourceProps, state: ImageSourceState) {
         if (props.item.id !== state.id ||
-            props.browse !== state.browse  ||
             props.item.syncOp !== state.syncOp||
             props.isSelected !== state.isSelected ||
-            ((props.item instanceof ImportObject) && props.item.selected !== state.selected)) {
+            ((props.item instanceof ImportObject) && props.item.selected !== state.selected) ||
+            ((props.item instanceof SaufotoAlbum) && state.count !== props.item.count )) {
            // Log.debug("CollectionViewItem -> Update item id: "+ state.uri)
             return CollectionListItem._updateState(props)
         }
@@ -178,7 +197,6 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
                 });
             }, 100)
             this.setState( {timer:timer})
-
         }
     }
 
@@ -194,44 +212,29 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
 
     onItemSelected(){
         if(!this.state.error) {
-             if( this.props.dataProvider === ServiceType.Saufoto) {
-                if(this.props.browse) {
-                    this.props.onSelected(this.props.item, this.props.index)
-                    return
-                } else {
-                    const media = this.props.item as ImportObject | SaufotoImage
-                    media.setSelected(!media.selected)
-                    this.setState({selected: media.selected});
-                    return;
-                }
-            }
-            if (!this.props.browse) {
+            if (isSelectionEnabled(this.props.renderMode)){
+                const media = this.props.item
+                media.setSelected(!media.selected).then(() => {
+                    this.setState({selected: media.selected})
+                })
+            } else {
                 this.props.onSelected(this.props.item, this.props.index)
-                return
-            }
-            const media = this.props.item as ImportObject | SaufotoImage
-            if (media.syncOp == SaufotoSyncAction.None) {
-                media.setSelected(!media.selected)
-                this.setState({selected: media.selected});
             }
         }
     };
 
     selectShow(){
         const media = this.props.item
-        if(media.syncOp !== SaufotoSyncAction.None) {
-            if( this.props.dataProvider === ServiceType.Saufoto && !this.props.browse && this.state.selected) return getPlaceholder('asset_select_icon.png')
-            if(media.syncOp === SaufotoSyncAction.Pending) return getPlaceholder('sync_white.png')
+        if( isSelectionEnabled(this.props.renderMode)) {
+            if(this.state.selected) return getPlaceholder('asset_select_icon.png')
         }
-        if( this.state.selected ) {
-            return getPlaceholder('asset_select_icon.png')
-        }
+        if(media.syncOp !== SaufotoSyncAction.None) return getPlaceholder('sync_white.png')
         return null
     }
 
-    StatusView(props: {small:boolean, source:any} ) {
-        if( props.small ) {
-            return (null)
+    StatusView(props: {mode:CollectionItemRenderStates, source:any} ) {
+        if( props.mode !== CollectionItemRenderStates.ImportFlatList ) {
+            return null
         }
         return (<Image style={styles.selectStyle} source={props.source}/>)
     }
@@ -242,11 +245,11 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
                 <Text style={styles.caption}>{props.title}</Text>
                 <Text style={styles.caption}>{props.count}</Text>
             </View>
-        ):(null)
+        ):null
     }
 
     render() {
-        const source = this.state.error ? (this.state.type === SaufotoObjectType.Image ? Placeholders.imageError:Placeholders.folderError) :{uri:this.state.uri}
+        const source = this.state.error ? (this.props.item.type === SaufotoObjectType.Image ? Placeholders.imageError:Placeholders.folderError) :{uri:this.state.uri}
         this.log("Render id: "+ this.state.id + " " + JSON.stringify(source))
         return (
             <TouchableOpacity
@@ -259,9 +262,9 @@ export default class CollectionListItem extends Component<ImageSourceProps, Imag
                     onError={ () => {
                         this.setState({ error: true });
                     }}>
-                    <this.StatusView small={this.props.small}  source={this.selectShow()}/>
+                    <this.StatusView mode={this.props.renderMode}  source={this.selectShow()}/>
                 </FastImage>
-                <this.CaptionView title={this.state.title} count={this.state.count} type={this.state.type}/>
+                <this.CaptionView title={this.state.title} count={this.state.count} type={this.props.item.type as SaufotoObjectType}/>
             </TouchableOpacity>
         )
     }

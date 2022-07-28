@@ -27,7 +27,7 @@ export default {
     tint: color.c300,
     tabIconDefault: color.c600,
     tabIconSelected: color.c200,
-    tabBackground: color.c600,
+    tabBackground: color.c300,
     black:color.black
   },
   colors: color,

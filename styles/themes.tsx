@@ -22,6 +22,7 @@ const CustomDefaultTheme = {
         textDark: Colors.dark.text,
         tint:Colors.dark.tint,
         headerBackground: Colors.light.tabBackground,
+        tabBarBackground: Colors.dark.tabBackground,
     },
 };
 
@@ -36,6 +37,7 @@ const CustomDarkTheme = {
         textDark: Colors.light.text,
         tint:Colors.light.tint,
         headerBackground: Colors.dark.tabBackground,
+        tabBarBackground: Colors.dark.tabBackground,
     },
 };
 

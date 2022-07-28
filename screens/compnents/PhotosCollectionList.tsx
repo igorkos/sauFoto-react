@@ -1,6 +1,6 @@
 import {Log} from "../../utils/log";
-import {BackHandler, FlatList, Platform, SafeAreaView, StyleSheet, Switch, TouchableOpacity} from "react-native";
-import {ProgressCircle, Text, View} from "../../styles/Themed";
+import {BackHandler, FlatList, Platform, SafeAreaView, StyleSheet} from "react-native";
+import {ProgressCircle, View} from "../../styles/Themed";
 import * as React from "react";
 import {useCallback, useEffect, useRef, useState} from "react";
 import {theme} from "../../styles/themes";
@@ -17,22 +17,26 @@ import {FlatListItemSizes, screenWidth} from "../../styles/Layout";
 import {authorizeWith} from "../../data/AuthorizationProvicer";
 import {SpeedyList, SpeedyListItemMeta, SpeedyListItemRenderer} from "react-native-speedy-list"
 import {ImportObject, subscribeImports} from "../../data/watermelon/ImportObject";
-import CollectionListItem from "./CollectionListItem";
+import CollectionListItem, {CollectionItemRenderStates} from "./CollectionListItem";
 import {Subscription} from "rxjs";
 import {useIsFocused} from "@react-navigation/native";
 import {ImportProvider} from "../../data/ImportProvider";
 import Carousel from "react-native-snap-carousel";
 import CollectionPreviewItem from "./CollectionPreviewItem";
 import {NewAlbumDialog} from "./AlbumSelectDialog";
-import {addImagesToAlbum, addSaufotoAlbum} from "../../data/watermelon/DataSourceUtils";
+import {addImagesToAlbum, addSaufotoAlbum, deleteImages} from "../../data/watermelon/DataSourceUtils";
 import {ActionEvent, ActionEvents, createAction, eventsSubscriber} from "../types/ActionEvents";
+import {database} from "../../index";
+import Colors from "../../styles/Colors";
+import {AlbumsPreviewBar} from "./AlbumsPreviewBar";
+import {SelectionBar} from "./SelectionBar";
 
 
 const PubSub = require('pubsub-js');
-
-export const photosListView = (navigation: { push: (arg0: string, arg1: { albumId: string|null; first?: number; }) => void; goBack: () => void; }, route: { params: { albumId: string; first: number; } | undefined; }, type: ServiceType, albums: boolean, isImport: boolean, isPreview: boolean = false) => {
+// @ts-ignore
+export const photosListView = (navigation, route, type: ServiceType, albums: boolean, isImport: boolean, isPreview: boolean = false) => {
     const [root] = useState<string | null>(route.params !== undefined ? (route.params.albumId === undefined ? null : route.params.albumId) : null);
-
+    const [actionBarVisible, setActionBarVisible] = useState<boolean>(false);
     if (Platform.OS === 'android') {
         BackHandler.addEventListener('hardwareBackPress', function () {
             return false;
@@ -62,22 +66,43 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
         await ImportProvider.addEntries(entries)
     }
 
+    const imagesDelete = async (entries: SaufotoImage[]) => {
+        await deleteImages(entries, root)
+    }
+
     const addToAlbum = async (entries: SaufotoImage[]) => {
         await addImagesToAlbum(entries, root!)
     }
 
     const selectAll = async (entries: ImportObject[]) => {
-        for( let entry of entries ) {
-            await entry.setSelected(true)
-        }
+        await database.write(async () => {
+            for( let entry of entries ) {
+                entry.update( record => record.selected = true )
+            }
+        })
     }
+
+    const selectImages = (select: boolean) => {
+        Log.debug("PhotosListView -> set actionBar:" + select)
+        setActionBarVisible(select)
+    }
+
+    useEffect(() => {
+        if(!isPreview && !isImport && root === null) {
+            const style = actionBarVisible ? {display: 'none'} : {display: 'flex'}
+            Log.debug("PhotosListView -> set actionBar:" + actionBarVisible)
+            navigation.getParent("BottomTab").setOptions({
+                tabBarStyle: style,
+            })
+        }
+    },[actionBarVisible])
 
     useEffect(() => {
         switch (events.event) {
             case ActionEvents.selectAll:{
                 Log.debug("PhotosListView -> select all")
                 selectAll(objects as ImportObject[]).then(() => {
-                    Log.debug("All selected")
+                    Log.debug("PhotosListView -> All selected")
                 } )
                 break
             }
@@ -87,7 +112,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
                 })
                 Log.debug("PhotosListView -> importToGallery selected" + toImport)
                 importAdd(toImport).then(() => {
-                    Log.debug("Added to import queue")
+                    Log.debug("PhotosListView -> Added to import queue")
                 })
                 break;
             }
@@ -118,6 +143,20 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
                  */
                 break;
             }
+            case ActionEvents.selectImages:{
+                selectImages(!events.data)
+                break
+            }
+            case ActionEvents.delete:{
+                const toDelete = (objects as SaufotoImage[]).filter((value) => {
+                    return value.selected
+                })
+                Log.debug("PhotosListView -> delete selected " + toDelete)
+                imagesDelete(toDelete).then(() => {
+                    Log.debug("PhotosListView -> Deleted images")
+                })
+                break
+            }
         }
         if(events.event !== ActionEvents.none) {
             setEvent(createAction(ActionEvents.none))
@@ -146,8 +185,6 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
 
     checkVisible(isFocused)
 
-
-
     /*
     Data fetching
      */
@@ -159,7 +196,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
          switch (type) {
             case ServiceType.Google:{
                 const subscription = await subscribeImports(ServiceType.Google, root,  (albums ? SaufotoObjectType.Album:SaufotoObjectType.Image), (value) => {
-                        Log.debug("Table update " + type + "images count: " + value.length)
+                        Log.debug("PhotosListView -> Table update " + type + "images count: " + value.length)
                         setObjects(value)
                     })
                 setSubscription(subscription)
@@ -167,7 +204,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
             }
             case ServiceType.Dropbox: {
                 const subscription = await subscribeImports(ServiceType.Dropbox, root, undefined, (value) => {
-                    Log.debug("Table update " + type + "images count: " + value.length)
+                    Log.debug("PhotosListView -> Table update " + type + "images count: " + value.length)
                     setObjects(value)
                 })
                 setSubscription(subscription)
@@ -175,7 +212,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
             }
             case ServiceType.Camera: {
                 const subscription = await subscribeImports(ServiceType.Camera, root, SaufotoObjectType.Image, (value) => {
-                    Log.debug("Table update " + type + "images count: " + value.length)
+                    Log.debug("PhotosListView -> Table update " + type + "images count: " + value.length)
                     setObjects(value)
                 })
                 setSubscription(subscription)
@@ -185,12 +222,12 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
                 let subscription
                 if (albums) {
                     subscription =  await subscribeAlbums((value) => {
-                            Log.debug("Table update " + type + " albums count: " + value.length)
+                            Log.debug("PhotosListView -> Table update " + type + " albums count: " + value.length)
                             setObjects(value)
                         })
                 } else {
                     subscription =  await subscribeImages(isImport ? null:root, (value) => {
-                        Log.debug("Table update " + type + " images count: " + value.length)
+                        Log.debug("PhotosListView -> Table update " + type + " images count: " + value.length)
                         setObjects(value)
                     })
                 }
@@ -202,7 +239,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
 
     const updateDataSource = (images?: LoadImagesResponse) => {
         if( images !== undefined ) {
-            Log.debug(type + " complete load images hasMore: " + images.hasMore);
+            Log.debug(type + " PhotosListView -> complete load images hasMore: " + images.hasMore);
             setLoading(false)
             setHasMore(images.hasMore)
         }
@@ -224,14 +261,14 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     useEffect(() => {
         setTimeout( () => {
             initData().catch((err) => {
-                Log.error("Loading " + type + " images error: " + err)
+                Log.error("PhotosListView -> Loading " + type + " images error: " + err)
             })
-            Log.debug(type + " global event isLoading: " + isLoading)
+            Log.debug("PhotosListView -> " + type + " global event isLoading: " + isLoading)
             fetchData().then((response) => {
                 // Log.debug("Load " + type + "images :" + JSON.stringify(images))
                 updateDataSource(response)
             }).catch((err) => {
-                Log.error("Loading " + type + " images error: " + err)
+                Log.error("PhotosListView -> Loading " + type + " images error: " + err)
             })
         }, 1000)
     }, []);
@@ -249,7 +286,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
             auth(error.provider).then(() => {
                 setError(null)
             }).catch((err) => {
-                Log.error("Authorize " + type + " error: " + err)
+                Log.error("PhotosListView -> Authorize " + type + " error: " + err)
             })
         }
     }, [error]);
@@ -259,15 +296,27 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
             setError(err)
         }
     }
+
+    const getRenderMode = ():CollectionItemRenderStates => {
+        if(actionBarVisible) return CollectionItemRenderStates.GallerySelect
+        if(albums && !isImport) return CollectionItemRenderStates.GalleryAlbums
+        if(isImport) {
+            if( albums ) {
+                return albumsPreview ? CollectionItemRenderStates.ImportAlbumsSelect:CollectionItemRenderStates.ImportAlbums
+            }
+            return CollectionItemRenderStates.Import
+        }
+        return CollectionItemRenderStates.Gallery
+    }
     /*
     SpeedyList support preview mode is off (isPreview= false)
      */
-    // @ts-ignore
     const [albumsPreview, setAlbumsPreview] = useState(true);
     const renderItem = useCallback<SpeedyListItemRenderer<ImportObject|SaufotoImage>>((props ) => {
-        const browse = type === ServiceType.Saufoto ? !isImport:albumsPreview
-        return <CollectionListItem  item={props.item} browse={browse} onSelected={onItemSelected} dataProvider={type} index={props.index} onError={onError} debug={true} small={false}/>
-    },[albumsPreview])
+        const selection = isImport || actionBarVisible
+        Log.debug("PhotosListView ->  Render item selection:" + selection + " import: " + isImport + " actionBar: " + actionBarVisible)
+        return <CollectionListItem renderMode={getRenderMode()} item={props.item} onSelected={onItemSelected} dataProvider={type} index={props.index} onError={onError} debug={true}/>
+    },[albumsPreview,actionBarVisible])
 
     const compareItems = (a: ImportObject, b: ImportObject):boolean => {
         return a.id === b.id;
@@ -297,10 +346,16 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
 
     //In Import screen Albums mode toggle 'Browse/select'
     const toggleSwitch = useCallback( (state: boolean) => {
-        Log.debug(type + " albums view mode: " + albumsPreview + " -> " + state)
+        Log.debug("PhotosListView -> "+ type + " albums view mode: " + albumsPreview + " -> " + state)
         if(state != albumsPreview) {
             setAlbumsPreview(state)
         }
+    },[albumsPreview]);
+
+    const selectionBarAction = useCallback( (action: ActionEvents) => {
+        Log.debug("PhotosListView -> " +type + " selection bar action: " + action)
+        // @ts-ignore
+        PubSub.publish(eventsSubscriber, createAction(action))
     },[albumsPreview]);
 
     const footer = (hasMore: boolean) => {
@@ -325,7 +380,7 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     const renderFlatItem = useCallback((props: { item: ImportObject | SaufotoImage; index: any; })  => {
         const isSelected = props.index === indexSelected
         //Log.debug("selected " + props.index + " selected " + indexSelected + " " + isSelected)
-        return <CollectionListItem  item={props.item} browse={true} onSelected={(item: ImportObject|SaufotoImage, index: number) => {carouselRef?.current?.snapToItem(index)}} dataProvider={type} index={props.index} onError={onError} debug={true} small={true} isSelected={ isSelected }/>
+        return <CollectionListItem renderMode={CollectionItemRenderStates.ImportFlatList} item={props.item} onSelected={(item: ImportObject|SaufotoImage|SaufotoAlbum, index: number) => {carouselRef?.current?.snapToItem(index)}} dataProvider={type} index={props.index} onError={onError} debug={true} isSelected={ isSelected }/>
     },[indexSelected])
 
     const renderCarousel = useCallback((props: { item: SaufotoImage; index: any; })  => {
@@ -351,24 +406,30 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
 
 
     const height = albums ? FlatListItemSizes[type].album.layout : FlatListItemSizes[type].image.layout
-    Log.debug("PhotosListView render")
-    return isAddAlbum ? (<NewAlbumDialog onOk={addAlbum} onCancel={ () => setIsAddAlbum( false)}/>):( !isPreview ? (
-        <SafeAreaView style={styles.container}>
-                <SpeedyList<ImportObject>
-                    scrollViewProps={{style:styles.container}}
-                    // @ts-ignore
-                    items={objects}
-                    itemRenderer={renderItem}
-                    itemKey={keyItem}
-                    itemEquals={compareItems}
-                    itemHeight={height}
-                    columns={(albums ? 2 : 3)}
-                    recyclableItemsCount={60}
-                    recyclingDelay={20}
-                    footer={footer(hasMore)}
-                />
-                <AlbumsPreview albums={albums} callback={toggleSwitch} state={albumsPreview} isImport={isImport}/>
-        </SafeAreaView>) : (<SafeAreaView style={styles.container}>
+    Log.debug("PhotosListView ->  render")
+    return isAddAlbum ? (
+            <NewAlbumDialog onOk={addAlbum} onCancel={ () => setIsAddAlbum( false)}/>):( !isPreview ? (
+            <SafeAreaView style={styles.container}>
+                    <SpeedyList<ImportObject>
+                        scrollViewProps={{style:styles.container}}
+                        // @ts-ignore
+                        items={objects}
+                        itemRenderer={renderItem}
+                        itemKey={keyItem}
+                        itemEquals={compareItems}
+                        itemHeight={height}
+                        columns={(albums ? 2 : 3)}
+                        recyclableItemsCount={60}
+                        recyclingDelay={20}
+                        footer={footer(hasMore)}
+                    />
+                    <AlbumsPreviewBar albums={albums} callback={toggleSwitch} state={albumsPreview} isImport={isImport}/>
+                    <SelectionBar isVisible={actionBarVisible} callback={selectionBarAction}/>
+                </SafeAreaView>
+        )
+        :
+        (
+            <SafeAreaView style={styles.container}>
                 <Carousel
                     slideStyle={{ width: screenWidth }}
                     ref={carouselRef}
@@ -401,33 +462,6 @@ export const photosListView = (navigation: { push: (arg0: string, arg1: { albumI
     ))
 }
 
-/*
-<StatusBar hidden={true} />
- */
-const AlbumsPreview = (props: { state: boolean | undefined; albums: any; isImport: any; callback: (arg0: boolean) => void; }) => {
-    const bFont =  props.state ? 'normal':'bold'
-    const sFont =  props.state ? 'bold':'normal'
-    return (props.albums && props.isImport) ? (
-        <View style={styles.previewStyle}>
-            <TouchableOpacity style={{...styles.caption, height:'100%', marginEnd:10,}} onPress={() =>{props.callback(false)}}>
-                <Text style={{...styles.caption, fontWeight:bFont}} >Browse</Text>
-            </TouchableOpacity>
-            <Switch
-                style={styles.switchStyle}
-                trackColor={{ false: theme.colors.tint, true: theme.colors.tint }}
-                thumbColor={theme.colors.text}
-                ios_backgroundColor={theme.colors.background}
-                value={props.state}
-            />
-            <TouchableOpacity style={{...styles.caption, height:'100%',  marginStart:10, marginEnd:10,}} onPress={() =>{props.callback(true)}}>
-                <Text style={{...styles.caption, fontWeight:sFont}} >Select</Text>
-            </TouchableOpacity>
-        </View>
-    ):(<View style={{height:0}}/>)
-}
-
-
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -437,6 +471,14 @@ const styles = StyleSheet.create({
         flexDirection:'row',
         fontSize: 14,
         lineHeight: 14,
+        numberOfLines:1,
+        ellipsizeMode:'tail',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    title: {
+        flexDirection:'row',
+        fontSize: 18,
         numberOfLines:1,
         ellipsizeMode:'tail',
         alignItems: 'center',
@@ -465,6 +507,16 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: theme.colors.background,
         justifyContent: 'flex-end',
+        alignItems: 'center',
+    },
+    selectBarStyle: {
+        flexDirection:'row',
+        height: 46,
+        width: '100%',
+        borderColor:theme.colors.tint,
+        elevation:5,
+        backgroundColor: Colors.light.tabBackground,
+        justifyContent: 'space-between',
         alignItems: 'center',
     },
 });

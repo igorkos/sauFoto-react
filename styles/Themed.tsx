@@ -3,14 +3,15 @@
  * https://docs.expo.io/guides/color-schemes/
  */
 import * as React from 'react';
-import {Text as DefaultText, useWindowDimensions, View as DefaultView} from 'react-native';
-
+import {Text as DefaultText, View as DefaultView} from 'react-native';
 import Colors from './Colors';
 import useColorScheme from './useColorScheme';
 
-import {Menu, MenuProps} from 'react-native-material-menu';
 import * as Progress from 'react-native-progress';
 import {CirclePropTypes} from "react-native-progress";
+import {MenuProps} from "react-native-popup-menu";
+import styled from "@emotion/styled";
+
 
 export function useThemeColor(
   props: { light?: string; dark?: string },
@@ -48,11 +49,6 @@ export function View(props: ViewProps) {
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
 }
 
-interface MenuFix extends React.Component<MenuProps> {}
-
-export const SMenu = (Menu as any) as {
-  new(): MenuFix;
-};
 
 interface ProgressCircledFix extends React.Component<CirclePropTypes> {}
 

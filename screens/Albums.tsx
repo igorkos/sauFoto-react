@@ -2,9 +2,7 @@ import * as React from "react";
 import {theme} from "../styles/themes";
 import {
     HeaderNavigationRight,
-    NavigationDrawerBack,
-    NavigationDrawerLeft, NavigationDrawerRightAdd,
-    NavigationDrawerRightImportImages
+    NavigationDrawerLeft,
 } from "./compnents/DrawerButtons";
 import {ServiceType} from "../data/ServiceType";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
@@ -29,9 +27,6 @@ export function GalleryAlbumsNavigator({navigation}) {
                     <HeaderNavigationRight actions={[ActionEvents.addAlbum]}/>
                 ),
             }}/>
-            <Stack.Group screenOptions={{presentation: 'modal', headerShown: true,}}>
-
-            </Stack.Group>
         </Stack.Navigator>
     );
 }

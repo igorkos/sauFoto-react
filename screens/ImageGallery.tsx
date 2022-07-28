@@ -2,8 +2,9 @@ import * as React from 'react';
 import {photosListView} from "./compnents/PhotosCollectionList";
 import {ServiceType} from "../data/ServiceType";
 import {theme} from "../styles/themes";
-import {NavigationDrawerLeft} from "./compnents/DrawerButtons";
+import {HeaderNavigationRight, NavigationDrawerLeft} from "./compnents/DrawerButtons";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
+import {ActionEvents} from "./types/ActionEvents";
 
 const Stack = createNativeStackNavigator();
 // @ts-ignore
@@ -19,6 +20,9 @@ export function GalleryImagesNavigator({navigation}) {
                     headerLeft: () => (
                         <NavigationDrawerLeft navigationProps={navigation} />
                     ),
+                    headerRight: () => (
+                        <HeaderNavigationRight actions={[ActionEvents.selectImages]}/>
+                    ),
                 }}/>
             </Stack.Group>
         </Stack.Navigator>
@@ -26,10 +30,6 @@ export function GalleryImagesNavigator({navigation}) {
 
 }
 
-/*
-<Stack.Group screenOptions={{presentation: 'modal', headerShown: true,}}>
-
- */
 // @ts-ignore
 function SaufotoGalleryScreen({ navigation, route }){
     return  photosListView(navigation, route, ServiceType.Saufoto, false, false, false)

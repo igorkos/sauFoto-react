@@ -1,0 +1,45 @@
+diff --git a/node_modules/react-native-popup-menu/src/index.d.ts b/node_modules/react-native-popup-menu/src/index.d.ts
+index 0ccea4a..82097a2 100644
+--- a/node_modules/react-native-popup-menu/src/index.d.ts
++++ b/node_modules/react-native-popup-menu/src/index.d.ts
+@@ -20,6 +20,7 @@ declare module "react-native-popup-menu" {
+     };
+     backHandler?: boolean | Function;
+     skipInstanceCheck?: boolean;
++    children:Elements;
+   }
+ 
+   interface MenuProviderStatic extends React.ComponentClass<MenuProviderProps> {
+@@ -43,6 +44,7 @@ declare module "react-native-popup-menu" {
+     renderer?: Function;
+     rendererProps?: any;
+     style?: StyleProp<ViewStyle>;
++    children:Elements;
+ 
+     onSelect?(optionValue: any): any;
+ 
+@@ -75,6 +77,7 @@ declare module "react-native-popup-menu" {
+   interface MenuTriggerProps {
+     disabled?: boolean;
+     text?: string;
++    children:Elements;
+     customStyles?: {
+       triggerOuterWrapper?: StyleProp<ViewStyle>;
+       triggerWrapper?: StyleProp<ViewStyle>;
+@@ -100,6 +103,7 @@ declare module "react-native-popup-menu" {
+     renderOptionsContainer?: Function;
+     customStyles?: MenuOptionsCustomStyle;
+     testID?: string;
++    children:Elements;
+   }
+ 
+   interface MenuOptionsCustomStyle extends MenuOptionCustomStyle {
+@@ -119,7 +123,7 @@ declare module "react-native-popup-menu" {
+     disabled?: boolean;
+     disableTouchable?: boolean;
+     customStyles?: MenuOptionCustomStyle;
+-
++    children:Elements;
+     style?: StyleProp<ViewStyle>;
+ 
+     onSelect?(): any;

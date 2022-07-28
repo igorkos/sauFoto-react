@@ -75,7 +75,7 @@ export async function addSaufotoAlbum(title:string) {
     await database.write(async () => {
         await collection.create(entry => {
             entry.type = SaufotoObjectType.Album
-            entry.syncOp = SaufotoSyncAction.None
+            entry.syncOp = SaufotoSyncAction.Pending
             entry.title = title
             entry.dateAdded = new Date()
             entry.origin = ServiceType.Saufoto
@@ -99,12 +99,45 @@ export async function addImagesToAlbum(list: SaufotoImage[], albumId: string) {
             })
             newItems.push(entry)
         }
+        await value.setSelected(false)
     }
 
     if( newItems.length > 0 ) {
         await database.write(async () => {
+            if(album.count === 0) {
+                album.update( record => record.keyItem.set(list[0]))
+            }
             await database.batch(...newItems)
+            album.update( record => record.count = album.count + newItems.length)
         })
-        await album.setCount(album.count + newItems.length)
     }
+}
+
+export async function deleteImages(list: SaufotoImage[], album: string | null) {
+    const collection = database.get<SaufotoAlbumImage>(Tables.AlbumImages)
+    const deleteFromAlbums = Array()
+    for( let value of list) {
+        let find
+        if(album === null) {
+            find = await collection.query(Q.where('image_id', value.id)).fetch()
+        } else {
+            find = await collection.query(Q.where('image_id', value.id), Q.where('album_id', album)).fetch()
+        }
+        if( find.length > 0) {
+            for(let item of find) {
+                item.prepareMarkAsDeleted()
+            }
+            deleteFromAlbums.push(...find)
+        }
+        if( album === null) {
+            value.prepareMarkAsDeleted()
+        }
+    }
+
+    await database.write(async () => {
+        await database.batch(...deleteFromAlbums)
+        if( album === null) {
+            await database.batch(...list)
+        }
+    })
 }

@@ -1,7 +1,7 @@
 import * as React from "react";
 import {Log} from "../utils/log";
 import {Dropbox, DropboxResponse, files} from "dropbox";
-import {SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage"
+import {SaufotoAlbum, SaufotoImage, SaufotoObjectType} from "./watermelon/SaufotoImage"
 import {LoadImagesResponse} from "./DataSourceProvider";
 import {ServiceTokens} from "./DataServiceConfig";
 import {ServiceType} from "./ServiceType";
@@ -75,7 +75,7 @@ export namespace DropboxProvider {
         return  {nextPage: null, items: [], hasMore: false }
     }
 
-    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage, size: ThumbSize ): Promise<string> {
+    export async function getThumbsData(config: ServiceTokens, object: ImportObject|SaufotoImage|SaufotoAlbum, size: ThumbSize ): Promise<string> {
         const dbx = await dropboxInstance(config)
         const tSize = size.replace('-','')
         const path = await  object.getOriginalUri()
@@ -157,7 +157,7 @@ export namespace DropboxProvider {
         return loadImages(config, root, page)
     }
 
-    export function albumId(media:ImportObject|SaufotoImage): string | null {
+    export function albumId(media:ImportObject|SaufotoImage|SaufotoAlbum): string | null {
         const entry = media as ImportObject
         return entry.originalUri === undefined ? null:entry.originalUri
     }
