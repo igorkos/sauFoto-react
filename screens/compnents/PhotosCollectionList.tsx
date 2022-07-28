@@ -37,6 +37,7 @@ const PubSub = require('pubsub-js');
 // @ts-ignore
 export const photosListView = (navigation, route, type: ServiceType, albums: boolean, isImport: boolean, isPreview: boolean = false) => {
     const [root] = useState<string | null>(route.params !== undefined ? (route.params.albumId === undefined ? null : route.params.albumId) : null);
+    const [title] = useState<string | null>(route.params !== undefined ? (route.params.title === undefined ? null : route.params.title) : null);
     const [actionBarVisible, setActionBarVisible] = useState<boolean>(false);
     if (Platform.OS === 'android') {
         BackHandler.addEventListener('hardwareBackPress', function () {
@@ -140,7 +141,7 @@ export const photosListView = (navigation, route, type: ServiceType, albums: boo
                 break
             }
             case ActionEvents.addImages : {
-                navigation.push('SaufotoAlbumAddImages', {albumId: root})
+                navigation.push('SaufotoAlbumAddImages', {albumId: root, title:('Add to ' + title)})
                 break;
             }
             case ActionEvents.importToAlbum: {
@@ -274,6 +275,9 @@ export const photosListView = (navigation, route, type: ServiceType, albums: boo
     }
 
     useEffect(() => {
+        if (title !== null) {
+            navigation.setOptions({title: title})
+        }
         setTimeout( () => {
             initData().catch((err) => {
                 Log.error("PhotosListView -> Loading " + type + " images error: " + err)
@@ -346,16 +350,16 @@ export const photosListView = (navigation, route, type: ServiceType, albums: boo
     const onItemSelected = (item: ImportObject|SaufotoImage|SaufotoAlbum, index: number) => {
         if( type === ServiceType.Saufoto ) {
             if( albums ) {
-                navigation.push('SaufotoAlbumImages', {albumId: item.id})
+                navigation.push('SaufotoAlbumImages', {albumId: item.id, title:item.title})
             } else {
                 const albumId = route.params?.albumId != null ? route.params?.albumId : null
-                navigation.push('PreviewImages', {albumId: albumId, first: index})
+                navigation.push('PreviewImages', {albumId: albumId, first: index, title:item.title})
             }
         } else {
             if(!isImport) {
-                navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item), first:index})
+                navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item), first:index, title:item.title})
             } else if(albums) {
-                navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item)})
+                navigation.push(type+'AlbumImages', {albumId: DataSourceProvider.albumId(type, item), title:item.title})
             }
         }
     };

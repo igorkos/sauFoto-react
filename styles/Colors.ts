@@ -8,7 +8,8 @@ const color = {
     c100: '#D1C4E9',
     c50: '#EDE7F6',
     c10:'#FDF7FE',
-    black:'#000000'
+    c10s:'#EEFDF7FE',
+    black:'#000000',
 }
 
 export default {

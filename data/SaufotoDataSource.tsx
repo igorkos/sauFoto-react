@@ -46,10 +46,10 @@ export namespace SaufotoProvider {
     }
 
     export async function getImageData( config: ServiceTokens, object: ImportObject|SaufotoImage): Promise<string> {
-
+        return !(object instanceof ImportObject) ? object.cashedData : object.getOriginalUri()
     }
 
     export function albumId(media:SaufotoAlbum | SaufotoImage) {
-        return media.originId
+        return media.id
     }
 }

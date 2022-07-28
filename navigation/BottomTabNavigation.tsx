@@ -12,6 +12,7 @@ import {HeaderNavigationRight, NavigationDrawerBack, NavigationDrawerLeft,} from
 import {GalleryImagesNavigator, SaufotoGalleryPreviewScreen} from "../screens/ImageGallery";
 import {ColorValue} from "react-native";
 import {ActionEvents} from "../screens/types/ActionEvents";
+import {View} from "../styles/Themed";
 
 /**
  * A bottom tab navigator displays tab buttons on the bottom of the display to switch screens.
@@ -71,11 +72,15 @@ export function RootNavigator({navigation}) {
                         <HeaderNavigationRight actions={[ActionEvents.addToAlbum]}/>
                     ),
                 }}/>
+                <Stack.Screen name="CameraModal" component={CameraScreen} options={{
+                    headerShown: false,
+                    title: "",
+                }}/>
             </Stack.Group>
         </Stack.Navigator>
     );
 }
-
+const Dummy = () => <View style={{ flex: 1, backgroundColor: "red" }} />
 const BottomTab = createBottomTabNavigator<RootTabParamList>();
 // @ts-ignore
 export const BottomTabNavigator = ({navigation, route}) => {
@@ -144,11 +149,18 @@ export const BottomTabNavigator = ({navigation, route}) => {
             />
             <BottomTab.Screen
                 name="Camera"
-                component={CameraScreen}
+                component={Dummy}
                 options={{
                     title: getHeaderTitle('Camera'),
                     tabBarIcon: ({color}) => getTabIcon('Camera', color),
                 }}
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                    e.preventDefault()
+                    navigation.navigate("CameraModal")
+                },
+                })
+            }
             />
         </BottomTab.Navigator>
     );

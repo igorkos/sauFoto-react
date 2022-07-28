@@ -86,6 +86,35 @@ export async function addSaufotoAlbum(title:string) {
     })
 }
 
+export async function addImage(uri: string): Promise<SaufotoImage> {
+    const imports = database.get<ImportObject>(Tables.Import)
+    const images = database.get<SaufotoImage>(Tables.Image)
+    const thumb = await createThumb(ThumbSize.THUMB_128,uri)
+    const imp = imports.prepareCreate(entry => {
+        entry.type = SaufotoObjectType.Image
+        entry.origin = ServiceType.Saufoto
+        entry.originId = uri
+        entry.title = (new Date()).toDateString()
+        entry.originalUri = uri
+        entry.parentId = ''
+        entry.syncOp = SaufotoSyncAction.None
+        entry.thumbs = thumb
+    })
+    const entry = images.prepareCreate(entry => {
+        entry.syncOp = SaufotoSyncAction.Pending
+        entry.title = (new Date()).toDateString()
+        entry.import.set(imp)
+        entry.thumbs = thumb
+        entry.type = SaufotoObjectType.Image
+        entry.origin = ServiceType.Saufoto
+        entry.cashedData = uri
+    })
+    await database.write(async () => {
+        await database.batch(imp,entry)
+    })
+    return entry
+}
+
 export async function addImagesToAlbum(list: SaufotoImage[], albumId: string) {
     const collection = database.get<SaufotoAlbumImage>(Tables.AlbumImages)
     const album = await database.get<SaufotoAlbum>(Tables.Album).find(albumId)
