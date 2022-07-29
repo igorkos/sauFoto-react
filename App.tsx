@@ -5,7 +5,7 @@
  * @format
  * @flow strict-local
  */
-
+import 'react-native-gesture-handler';
 import * as React from 'react';
 import 'localstorage-polyfill';
 import Navigation from './navigation';

@@ -15,6 +15,7 @@ const Drawer = createDrawerNavigator();
 export function DrawerNavigator() {
     return (
         <Drawer.Navigator
+            useLegacyImplementation={true}
             drawerContent={(props) => <SaufotoDrawer {...props}/>}
             screenOptions={{headerShown: false }}>
             <Drawer.Screen name="Gallery" component={RootNavigator} />
