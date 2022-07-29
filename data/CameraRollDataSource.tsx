@@ -65,6 +65,7 @@ export namespace CameraProvider {
             hasMore = !(photosTemp.assets.length < 50)
             nextPage = photosTemp.assets[photosTemp.assets.length - 1].id
         }
+
         Log.debug("Camera roll items load complete")
         return {nextPage: null, items: [], hasMore: false }
     }

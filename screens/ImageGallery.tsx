@@ -5,10 +5,37 @@ import {theme} from "../styles/themes";
 import {HeaderNavigationRight, NavigationDrawerLeft} from "./compnents/DrawerButtons";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import {ActionEvents} from "./types/ActionEvents";
+import {useEffect} from "react";
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as TaskManager from 'expo-task-manager';
+import {BackgroundFetchStatus} from "expo-background-fetch/src/BackgroundFetch.types";
+import {BACKGROUND_FETCH_SYNC, registerBackgroundFetchAsync, unregisterBackgroundFetchAsync} from "../App";
+import {Log} from "../utils/log";
 
 const Stack = createNativeStackNavigator();
 // @ts-ignore
 export function GalleryImagesNavigator({navigation}) {
+    const [isRegistered, setIsRegistered] = React.useState(false);
+    const [status, setStatus] = React.useState<BackgroundFetchStatus | null>(null);
+
+    const checkStatusAsync = async () => {
+        const status = await BackgroundFetch.getStatusAsync();
+        const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_SYNC);
+        Log.debug("!!!!!! Async Task registered " + isRegistered)
+        setStatus(status);
+        setIsRegistered(isRegistered);
+    };
+
+    useEffect(() => {
+        checkStatusAsync().then(r => {});
+    }, []);
+
+    useEffect(() => {
+        if (!isRegistered) {
+            registerBackgroundFetchAsync().then(r => {});
+        }
+    }, [isRegistered]);
+
     return (
         <Stack.Navigator>
             <Stack.Group>

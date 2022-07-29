@@ -12,6 +12,8 @@ import {screenWidth} from "../styles/Layout";
 import {Log} from "../utils/log";
 import {addImage} from "../data/watermelon/DataSourceUtils";
 import {CameraMountError} from "expo-camera/build/Camera.types";
+import {NewAlbumDialog} from "./compnents/AlbumSelectDialog";
+import {EmailDialog, SMSDialog} from "./compnents/ShareDialog";
 
 enum CameraMode{
     Portrait,
@@ -202,6 +204,7 @@ export default function CameraScreen({navigation}) {
     if (hasPermission === false) {
         return <Text>No access to camera</Text>;
     }
+
     return (
         <View style={styles.container}>
             <StatusBar hidden={true} />

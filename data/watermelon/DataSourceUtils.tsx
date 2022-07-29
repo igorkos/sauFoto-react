@@ -10,6 +10,7 @@ import {Tables} from "./shema";
 import {Log} from "../../utils/log";
 import {SaufotoAlbum} from "./SaufotoAlbum";
 import {SaufotoAlbumImage} from "./SaufotoAlbumImage";
+import * as BackgroundFetch from 'expo-background-fetch';
 
 export async function addToTable(list: Array<any>,  origin: ServiceType, root: string, type: (item: any) => string,
                                  title: string, uri: string, fetchThumb?:string, thumbSize?:ThumbSize, keyItem?: string, count?: string ) {
@@ -222,4 +223,17 @@ export async function subscribeImages( root: string | null, next?: ((value: Sauf
 
 export async function subscribeAlbums(next?: ((value: SaufotoAlbum[]) => void)) {
     return database.get<SaufotoAlbum>(Tables.Album).query().observe().subscribe( next )
+}
+
+function thumbsLoadTask() {
+    try {
+        // fetch data here...
+        const backendData = "Simulated fetch " + Math.random();
+        Log.debug("ThumbsLoadTask -> () ", backendData);
+        return backendData
+            ? BackgroundFetch.BackgroundFetchResult.NewData
+            : BackgroundFetch.BackgroundFetchResult.NoData;
+    } catch (err) {
+        return BackgroundFetch.BackgroundFetchResult.Failed;
+    }
 }
