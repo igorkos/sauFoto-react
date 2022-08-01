@@ -53,8 +53,7 @@ export function GalleryImagesNavigator({navigation}) {
                 }}/>
             </Stack.Group>
         </Stack.Navigator>
-    );
-
+    )
 }
 
 // @ts-ignore

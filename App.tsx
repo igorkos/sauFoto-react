@@ -46,17 +46,17 @@ export async function registerBackgroundFetchAsync() {
         minimumInterval: 60, // 15 minutes
         stopOnTerminate: false, // android only,
         startOnBoot: true, // android only
-    });
+    })
     return BackgroundFetch.registerTaskAsync(BACKGROUND_THUMB_FETCH, {
         minimumInterval: 1, // 15 minutes
         stopOnTerminate: false, // android only,
         startOnBoot: true, // android only
-    });
+    })
 }
 
 
-unregisterBackgroundFetchAsync()
-registerBackgroundFetchAsync()
+unregisterBackgroundFetchAsync().then(r => {})
+registerBackgroundFetchAsync().then(r => {})
 
 
 export default function App() {
@@ -67,5 +67,5 @@ export default function App() {
           <GestureHandlerRootView style={{ flex: 1 }}>
                 <Navigation/>
           </GestureHandlerRootView>
-  );
-};
+  )
+}

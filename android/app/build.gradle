@@ -293,7 +293,7 @@ dependencies {
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
     implementation project(':react-native-linear-gradient')
-    //implementation project(':watermelondb-jsi')
+    implementation project(':react-native-in-app-review')
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni'
